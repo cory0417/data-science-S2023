@@ -29,7 +29,10 @@ library(tidyverse)
 
 ```{r q1-task}
 ## Original code; hard to read
-summarize(group_by(diamonds, cut), mean_price = mean(price))
+diamonds %>% 
+  group_by(cut) %>% 
+  summarize(mean_price = mean(price))
+#summarize(group_by(diamonds, cut), mean_price = mean(price))
 ```
 
 ```{r q1-solution}
