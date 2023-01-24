@@ -35,10 +35,6 @@ diamonds %>%
 #summarize(group_by(diamonds, cut), mean_price = mean(price))
 ```
 
-```{r q1-solution}
-## TODO: Re-write the code above following the tidyverse style guide
-```
-
 ### __q2__ Re-write according to the style guide
 
 *Hint*: There are *particular rules* about spacing!
@@ -46,16 +42,12 @@ diamonds %>%
 ```{r q2-task}
 ## NOTE: You can copy this code to the chunk below
 iris %>%
-  mutate(Sepal.Area=Sepal.Length*Sepal.Width) %>%
-  group_by( Species ) %>%
-  summarize_if(is.numeric,mean)%>%
+  mutate(Sepal.Area = Sepal.Length * Sepal.Width) %>%
+  group_by(Species) %>%
+  summarize_if(is.numeric, mean) %>%
   ungroup() %>%
-  pivot_longer( names_to="measure",values_to="value",cols=-Species ) %>%
-  arrange(value )
-```
-
-```{r q2-solution}
-## TODO: Re-write the code above following the tidyverse style guide
+  pivot_longer(names_to = "measure", values_to = "value", cols = -Species) %>%
+  arrange(value)
 ```
 
 ### __q3__ Re-write according to the style guide
@@ -70,6 +62,14 @@ iris %>%
 
 ```{r q3-task}
 ## TODO: Re-write the code above following the tidyverse style guide
+iris %>%
+  group_by(Species) %>%
+  summarize(
+    Sepal.Length = mean(Sepal.Length), 
+    Sepal.Width = mean(Sepal.Width), 
+    Petal.Length = mean(Petal.Length), 
+    Petal.Width = mean(Petal.Width)
+    )
 ```
 
 The following is an *addition* I'm making to the "effective styleguide" for the
@@ -138,7 +138,19 @@ ggplot(
 ```
 
 ```{r q4-task}
+iris %>%
+  pivot_longer(
+    names_to = c("Part", ".value"),
+    names_sep = "\\.",
+    cols = -Species
+  ) %>%
+  
+  ggplot(aes(Width, Length, color = Part)) +
+  geom_point() + 
+  facet_wrap(~Species)
+  
 ```
+  
 
 <!-- include-exit-ticket -->
 # Exit Ticket

@@ -28,11 +28,15 @@ knitr::opts_chunk$set(echo = TRUE)
 ### __q1__ Inspect the `diamonds` dataset. What do the `cut`, `color`, and `clarity` variables mean?
 
 *Hint*: We learned how to inspect a dataset in `e-data-00-basics`!
-
+'cut', 'color', and 'clarity' variables are ordinals that have a specified order to their categorical values. 
 ```{r q1-task, eval=FALSE}
+glimpse(diamonds)
 ```
 
 ### __q2__ Use your "standard checks" to determine what variables the dataset has.
+```{r}
+ls(diamonds)
+```
 
 
 Now that we have the list of variables in the dataset, we know what we can visualize!
@@ -46,12 +50,13 @@ y` pairs. Language is hard!
 
 ```{r q3-task}
 ## TODO: Complete this code
-ggplot(diamonds)
+ggplot(diamonds) +
+  geom_point(mapping = aes(x = carat, y = price))
 ```
 
 **Observations**:
 
-- (Write your observations here!)
+- Although the price increases as the carat increases generally, it's not necessary that a diamond of higher carat will be more expensive than one of lower carat. 
 
 ## A note on *aesthetics*
 
@@ -69,12 +74,13 @@ simultaneously.
 
 ```{r q4-task}
 ## TODO: Complete this code
-ggplot(diamonds)
+ggplot(diamonds) + 
+  geom_point(mapping = aes(x = carat, y = price, color = cut), size = 1)
 ```
 
 **Observations**:
 
-- (Write your observations here!)
+- Diamonds with higher cut quality are more expensive.
 
 <!-- include-exit-ticket -->
 # Exit Ticket
