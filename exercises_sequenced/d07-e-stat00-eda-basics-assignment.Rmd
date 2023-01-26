@@ -44,6 +44,10 @@ library(tidyverse)
 to do? Do those simple checks on the diamonds dataset below.
 
 ```{r q0-task}
+head(diamonds)
+glimpse(diamonds)  
+
+summary(diamonds)
 ```
 
 I'm going to walk you through a train of thought I had when studying the
@@ -70,7 +74,7 @@ diamonds %>%
 ```
 
 **Observations**:
-- Write your observations here!
+- Contrary to the hypothesis, number of 'Ideal' cut diamonds is greater than diamonds of any other cut types. 
 
 ## Hypothesis 2
 
@@ -87,7 +91,7 @@ diamonds %>%
 ```
 
 **Observations**:
-- Write your observations here!
+- It's not an effective graph because the size of the carat can also influence the price and the prices are too spread out.
 
 The following is a set of *boxplots*; the middle bar denotes the median, the
 boxes denote the *quartiles* (upper and lower "quarters" of the data), and the
@@ -102,7 +106,7 @@ diamonds %>%
 ```
 
 **Observations**:
-- Write your observations here!
+- It doesn't support the hypothesis since the median and the quartiles are not higher than all the other cuts, and the outliers are similarly spread out in comparison to other cuts as well. 
 
 ## Unraveling Hypothesis 2
 
@@ -122,7 +126,7 @@ diamonds %>%
 ```
 
 **Observations**:
-- Write your observations here!
+- It partially supports the hypothesis because the median and quartile are the lowest for 'Ideal' and the outliers are also mostly below 3 carats. But we still can't say for sure to what extent the cut and the carat affect the price. 
 
 ## Footnotes
 
