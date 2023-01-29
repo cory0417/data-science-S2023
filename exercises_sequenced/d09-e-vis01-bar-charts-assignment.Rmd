@@ -32,9 +32,14 @@ library(tidyverse)
 the same visual using `geom_col()`.
 
 ```{r q1-task}
+# mpg %>%
+#   ggplot(aes(trans)) +
+#   geom_bar()
+
 mpg %>%
-  ggplot(aes(trans)) +
-  geom_bar()
+  count(trans) %>%
+  ggplot(aes(x = trans, y = n)) +
+  geom_col()
 ```
 
 The reading mentioned that when using `geom_col()` our x-y data should be
@@ -57,11 +62,11 @@ mpg %>% filter(cty == 20)
 ```{r q2-task}
 mpg %>%
   ggplot(aes(x = cty, y = hwy)) +
-  geom_col()
+  geom_col(position = "dodge")
 ```
 
 **Observations**:
-- Write your observations here!
+- The value of visualized 'hwy' is the sum of all the 'hwy' outputs from the same 'cty' input value.
 
 A more standard way to visualize this kind of data is a *scatterplot*, which
 we'll study later. For now, here's an example of a more effective way to
@@ -87,7 +92,7 @@ mpg %>%
 ```
 
 **Observations**:
-- Write your observations here!
+- The bar chart shows the count of each class of vehicles with the color according its class.
 
 ```{r q4-v2}
 ## TODO: Run this code without changing, describe your observations on the data
@@ -97,12 +102,14 @@ mpg %>%
 ```
 
 **Observations**:
-- Write your observations here!
+- The bar chart shows the count of each class of vehicles with the color and size of the the box within the bars that represent the 'drv' variable. 
 
 **Compare `v1` and `v2`**:
 
 - Which visualization---`v1` or `v2`---enabled you to make more observations?
+'v2' enabled me to make more observations since it provided insight about the proportions of 'drv' as well within each class.
 - What was the difference between `v1` and `v2`?
+The difference between them was that the fill of the bars represented 'class' for 'v1' and 'drv' for 'v2'.
 
 ### __q4__ The following code has a bug; it does not do what its author intended.
 Identify and fix the bug. What does the resulting graph tell you about the
@@ -113,23 +120,29 @@ do this in a future exercise.
 
 ```{r q4-task}
 mpg %>%
-  ggplot(aes(x = manufacturer, fill = class), position = "dodge") +
-  geom_bar() +
+  ggplot(aes(x = manufacturer, fill = class)) +
+  geom_bar(position = "dodge") +
   theme(axis.text.x = element_text(angle = 270, vjust = 0.5, hjust = 0))
 ```
 
 **Observations**
-- Your observations here!
+- The number of classes range between 1 to 4 for all the manufacturers. 
+- There are quite a few manufacturers specializing in suv. 
+- The count of vehicles in each class for each manufacturers are mostly below 10. 
 
 ### __q5__ The following graph is hard to read. What other form of faceting would
 make the visual more convenient to read? Modify the code below with your
 suggested improvement.
 
 ```{r q5-task}
+# mpg %>%
+#   ggplot(aes(x = cyl)) +
+#   geom_bar() +
+#   facet_grid(~ manufacturer)
 mpg %>%
   ggplot(aes(x = cyl)) +
   geom_bar() +
-  facet_grid(~ manufacturer)
+  facet_wrap(~ manufacturer, scales = "free_y")
 ```
 
 <!-- include-exit-ticket -->
