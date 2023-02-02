@@ -71,7 +71,7 @@ df_titanic %>% summarize(total = sum(n))
 
 - Write your observations here
 - Are there any differences?
-  - The Wikipedia claims that there were about 2224 passengers and crew whereas the total in the dataset were 2201, which accounts for about 1% of the people aboard. 
+  - The Wikipedia claims that there were about 2224 passengers and crew whereas the total in the dataset were 2201, which accounts for about 99% of the people aboard. 
 - If yes, what might account for those differences?
   - On the Wikipedia page, it notes that the exact number on the ship were unclear because of the confusions on the passenger list (like last minute cancellations that weren't account for) and people who were travelling with different identities that led to duplicate data. Thus, the dataset from the R package might have used a different set of metrics to decide the people on the ship from the dataset on the Wikipedia page. 
 

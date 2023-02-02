@@ -158,7 +158,7 @@ df_titanic %>% summarize(total = sum(n))
 - Are there any differences?
   - The Wikipedia claims that there were about 2224 passengers and crew
     whereas the total in the dataset were 2201, which accounts for about
-    1% of the people aboard.
+    99% of the people aboard.
 - If yes, what might account for those differences?
   - On the Wikipedia page, it notes that the exact number on the ship
     were unclear because of the confusions on the passenger list (like
