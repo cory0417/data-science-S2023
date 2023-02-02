@@ -379,11 +379,12 @@ df_q2 %>%
 ![](c02-michelson-assignment_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
 
 ``` r
-df_q2 %>%
-  group_by(Distinctness) %>%
-  mutate(mean = mean(VelocityVacuum)) %>%
-  ggplot(mapping = aes(x = Distinctness, y = VelocityVacuum)) +
-  geom_point() +
+df_q2 %>% 
+  ggplot(mapping = aes(x = Distinctness)) +
+  geom_point(
+    # data = df_q2,
+    mapping = aes(y = VelocityVacuum)
+  ) +
   geom_hline(
     yintercept = LIGHTSPEED_MICHELSON,
     linetype = "dotted"
@@ -401,10 +402,15 @@ df_q2 %>%
     linetype = "dotted",
     color = "Red"
   ) +
-  geom_point(aes(y = mean, color = "Red"))
+  geom_point(
+    data = . %>% 
+      group_by(Distinctness) %>% 
+      summarize(VelocityMean = mean(VelocityVacuum)),
+    mapping = aes(y = VelocityMean, color = "Red")
+  )
 ```
 
-![](c02-michelson-assignment_files/figure-gfm/unnamed-chunk-2-2.png)<!-- -->
+![](c02-michelson-assignment_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
 
 ``` r
 df_q2 %>%
@@ -421,12 +427,12 @@ df_q2 %>%
     ) +
   labs(
     fill = "Temperature (°F)",
-    x = "Measurement in Bound",
+    x = "Measurement within Uncertainty",
     y = "Count"
-    )
+  )
 ```
 
-![](c02-michelson-assignment_files/figure-gfm/unnamed-chunk-2-3.png)<!-- -->
+![](c02-michelson-assignment_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
 
 **Observations**:
 
