@@ -249,12 +249,18 @@ df_q2 %>%
     linetype = "dotted",
     color = "Red"
   )
+```
 
-df_q2 %>%
-  group_by(Distinctness) %>%
-  mutate(mean = mean(VelocityVacuum)) %>%
-  ggplot(mapping = aes(x = Distinctness, y = VelocityVacuum)) +
-  geom_point() +
+```{r}
+
+
+
+df_q2 %>% 
+  ggplot(mapping = aes(x = Distinctness)) +
+  geom_point(
+    # data = df_q2,
+    mapping = aes(y = VelocityVacuum)
+  ) +
   geom_hline(
     yintercept = LIGHTSPEED_MICHELSON,
     linetype = "dotted"
@@ -272,8 +278,15 @@ df_q2 %>%
     linetype = "dotted",
     color = "Red"
   ) +
-  geom_point(aes(y = mean, color = "Red"))
+  geom_point(
+    data = . %>% 
+      group_by(Distinctness) %>% 
+      summarize(VelocityMean = mean(VelocityVacuum)),
+    mapping = aes(y = VelocityMean, color = "Red")
+  )
+```
 
+```{r}
 df_q2 %>%
   mutate(
     VelocityUpper = VelocityVacuum + LIGHTSPEED_PM - LIGHTSPEED_VACUUM <= 0,
@@ -288,12 +301,9 @@ df_q2 %>%
     ) +
   labs(
     fill = "Temperature (°F)",
-    x = "Measurement in Bound",
+    x = "Measurement within Uncertainty",
     y = "Count"
-    )
-  
-
-  
+  )
 ```
 
 
