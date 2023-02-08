@@ -86,7 +86,7 @@ for more information.
 # Libraries
 library(tidyverse)
 library(googlesheets4)
-
+library(lintr)
 url <- "https://docs.google.com/spreadsheets/d/1av_SXn4j0-4Rk0mQFik3LLr-uf0YdA06i3ugE6n-Zdo/edit?usp=sharing"
 
 # Parameters
@@ -188,8 +188,8 @@ in the dataset.
 ``` r
 ## TODO: Adjust the data, assign to df_q2
 df_q2 <-
-  df_michelson %>%
-  mutate(VelocityVacuum = Velocity +92)
+  df_michelson %>% 
+  mutate(VelocityVacuum = Velocity + 92)
 df_q2
 ```
 
@@ -233,7 +233,11 @@ human judgment.\[2\]
 
 ``` r
 ## TODO: Compare Michelson's estimate and error against the true value
-between(LIGHTSPEED_VACUUM, LIGHTSPEED_MICHELSON - LIGHTSPEED_PM, LIGHTSPEED_MICHELSON + LIGHTSPEED_PM)
+between(
+  LIGHTSPEED_VACUUM, 
+  LIGHTSPEED_MICHELSON - LIGHTSPEED_PM, 
+  LIGHTSPEED_MICHELSON + LIGHTSPEED_PM
+  )
 ```
 
     ## [1] FALSE
@@ -329,7 +333,7 @@ df_q2 %>%
     size = 0.8
   ) +
 
-  facet_grid(source~.) +
+  facet_grid(source ~ .) +
   theme_minimal() +
   labs(
     x = "Date of Measurement (1879)",
@@ -356,24 +360,56 @@ df_q2 %>%
   mutate(mean = mean(VelocityVacuum)) %>%
   ggplot(aes(x = Temp, y = VelocityVacuum)) +
   geom_point() +
-  geom_line(mapping = aes(y = mean, color = "Red")) +
-  geom_hline(
+  geom_smooth(
+    mapping = aes(color = "Trendline of the Velocity"), 
+    formula = y ~ x, 
+    method = lm, 
+    se = FALSE, 
+    linewidth = 0.5
+    ) +
+  geom_hline(mapping = aes(
     yintercept = LIGHTSPEED_MICHELSON,
-    linetype = "dotted"
+    color = "Michelson's Velocity of Light",
+    ),
+    linetype = "dashed",
+    alpha = 0.4
   ) +
   geom_hline(
     yintercept = LIGHTSPEED_MICHELSON - LIGHTSPEED_PM,
-    linetype = "dashed"
+    linetype = "dotted"
   ) +
   geom_hline(
     yintercept = LIGHTSPEED_MICHELSON + LIGHTSPEED_PM,
-    linetype = "dashed"
+    linetype = "dotted"
   ) +
   geom_hline(
-    yintercept = LIGHTSPEED_VACUUM,
-    linetype = "dotted",
-    color = "Red"
-  )
+    mapping = aes(
+      yintercept = LIGHTSPEED_VACUUM, 
+      color = "Modern Velocity of Light"
+      ), 
+    linetype = "dashed",
+    alpha = 0.4
+  ) +
+  scale_color_manual(
+    values = c(
+      "Michelson's Velocity of Light" = "brown",
+      "Modern Velocity of Light" = "blue",
+      "Trendline of the Velocity" = "red"
+    )
+  ) +
+  labs(
+    title = "Michelson's Velocity Measurements vs Temperature",
+    caption = str_wrap("The plot shows the relationship between Michelson's 
+                       measurements of velocity of light and temperature.",
+                       80),
+    y = "Experimental Velocity of Light (km/s)",
+    x = "Temperature (°F)"
+  ) +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    plot.caption = element_text(hjust = 0.5),
+    legend.title = element_blank()
+    )
 ```
 
 ![](c02-michelson-assignment_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
@@ -382,11 +418,13 @@ df_q2 %>%
 df_q2 %>% 
   ggplot(mapping = aes(x = Distinctness)) +
   geom_point(
-    # data = df_q2,
     mapping = aes(y = VelocityVacuum)
   ) +
   geom_hline(
-    yintercept = LIGHTSPEED_MICHELSON,
+    mapping = aes(
+      color = "Michelson's Velocity of Light", 
+      yintercept = LIGHTSPEED_MICHELSON
+      ),
     linetype = "dotted"
   ) +
   geom_hline(
@@ -398,16 +436,34 @@ df_q2 %>%
     linetype = "dashed"
   ) +
   geom_hline(
-    yintercept = LIGHTSPEED_VACUUM,
+    mapping = aes(
+      color = "Modern Velocity of Light", 
+      yintercept = LIGHTSPEED_VACUUM
+      ),
     linetype = "dotted",
-    color = "Red"
   ) +
   geom_point(
     data = . %>% 
       group_by(Distinctness) %>% 
       summarize(VelocityMean = mean(VelocityVacuum)),
-    mapping = aes(y = VelocityMean, color = "Red")
-  )
+    mapping = aes(y = VelocityMean, color = "Mean Velocity")
+  ) +
+  scale_color_manual(
+    values = c(
+      "Mean Velocity" = "red",
+      "Modern Velocity of Light" = "blue",
+      "Michelson's Velocity of Light" = "brown"
+    )
+  ) +
+  labs(
+    title = "Michelson's Measurements vs Distinctness",
+    y = "Experimental Velocity of Light (km/s)",
+    x = "Distinctness"
+  ) +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5)
+    )
 ```
 
 ![](c02-michelson-assignment_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
@@ -423,13 +479,23 @@ df_q2 %>%
   geom_bar(aes(in_bound, fill = factor(Temp))) +
   scale_fill_grey(start = 0, end = .9) + 
   facet_wrap(
-    ~ Distinctness, labeller = as_labeller(c('1' = "Distinctness: 1", '2' = "Distinctness: 2", '3' = "Distinctness: 3"))
+    ~ Distinctness, labeller = as_labeller(
+      c(
+        "1" = "Distinctness: 1", 
+        "2" = "Distinctness: 2", 
+        "3" = "Distinctness: 3"
+        )
+      )
     ) +
   labs(
     fill = "Temperature (°F)",
     x = "Measurement within Uncertainty",
-    y = "Count"
-  )
+    y = "Count",
+    caption = str_wrap("The plot shows the count of measurements that include 
+                       the modern speed of light in their uncertainty range.",
+                       80)
+  ) +
+  theme(plot.caption = element_text(hjust = 0.5))
 ```
 
 ![](c02-michelson-assignment_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
@@ -445,7 +511,7 @@ df_q2 %>%
 - There are equal number of measurements that are within the uncertainty
   proposed in each group of ‘Distinctness’
 - Temperature doesn’t seem to have a strong effect on whether the
-  measurements are in bound or not.
+  measurements have the modern speed of light in their bound or not.
 
 ## Bibliography
 
