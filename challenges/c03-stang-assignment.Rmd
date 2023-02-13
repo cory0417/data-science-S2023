@@ -1,7 +1,7 @@
 ---
 title: "Aluminum Data"
-author: "(Your name here)"
-date: 2020-
+author: "Daeyoung Kim"
+date: 2023-02-12
 output:
   github_document:
     toc: true
@@ -38,6 +38,7 @@ All the deliverables stated in the rubrics above are due **at midnight** before 
 
 ```{r setup}
 library(tidyverse)
+library(ggpubr)
 ```
 
 *Background*: In 1946, scientists at the Bureau of Standards tested a number of Aluminum plates to determine their [elasticity](https://en.wikipedia.org/wiki/Elastic_modulus) and [Poisson's ratio](https://en.wikipedia.org/wiki/Poisson%27s_ratio). These are key quantities used in the design of structural members, such as aircraft skin under [buckling loads](https://en.wikipedia.org/wiki/Buckling). These scientists tested plats of various thicknesses, and at different angles with respect to the [rolling](https://en.wikipedia.org/wiki/Rolling_(metalworking)) direction.
@@ -59,15 +60,21 @@ df_stang
 
 Note that these data are not tidy! The data in this form are convenient for reporting in a table, but are not ideal for analysis.
 
-### __q1__ Tidy `df_stang` to produce `df_stang_long`. You should have column names `thick, alloy, angle, E, nu`. Make sure the `angle` variable is of correct type. Filter out any invalid values.
+### __q1__ Tidy `df_stang` to produce `df_stang_long`. You should have column names `thick, alloy, angle, E, mu`. Make sure the `angle` variable is of correct type. Filter out any invalid values.
 
 *Hint*: You can reshape in one `pivot` using the `".value"` special value for `names_to`.
 
 ```{r q1-task}
 ## TASK: Tidy `df_stang`
 df_stang_long <-
-  df_stang
-
+  df_stang %>% 
+  pivot_longer(
+    cols = starts_with("E") | starts_with("mu"),
+    names_to = c(".value", "angle"),
+    names_sep = "_",
+    names_transform = list(angle = as.integer)
+  ) %>% 
+  filter(E > 0 | mu > 0)
 df_stang_long
 ```
 
@@ -79,7 +86,7 @@ Use the following tests to check your work.
 assertthat::assert_that(
               setequal(
                 df_stang_long %>% names,
-                c("thick", "alloy", "angle", "E", "nu")
+                c("thick", "alloy", "angle", "E", "mu")
               )
             )
 ## Dimensions
@@ -101,20 +108,25 @@ print("Very good!")
 ### __q2__ Perform a basic EDA on the aluminum data *without visualization*. Use your analysis to answer the questions under *observations* below. In addition, add your own *specific* question that you'd like to answer about the data---you'll answer it below in q3.
 
 ```{r q2-task}
-##
+df_stang_long %>% 
+  glimpse %>% 
+  summary 
+df_stang_long
+
 ```
 
 **Observations**:
 
 - Is there "one true value" for the material properties of Aluminum?
-  - (Your response here)
+  - No, even for a given thickness of an alloy at a specific angle, the `E` and `mu` had variations among observations.  
 - How many aluminum alloys are in this dataset? How do you know?
-  - (Your response here)
+  - There is only one alloy in the dataset. The value for column `alloy` doesn't change.
 - What angles were tested?
-  - (Your response here)
+  - 0, 45, 90 degrees were tested.
 - What thicknesses were tested?
-  - (Your response here)
-- (Write your own question here)
+  - 0.022, 0.032, 0.064, 0.081 were tested.
+- What's the relationship between the thickness, E, and mu?
+
 
 ## Visualize
 <!-- ------------------------- -->
@@ -122,12 +134,38 @@ print("Very good!")
 ### __q3__ Create a visualization to investigate your question from q2 above. Can you find an answer to your question using the dataset? Would you need additional information to answer your question?
 
 ```{r q3-task}
-## TASK: Investigate your question from q1 here
+plot_E <-
+  ggplot() +
+  geom_point(
+    data = df_stang_long,
+    mapping = aes(x = thick, y = E)
+  ) +
+  geom_line(
+    data = df_stang_long %>% 
+      group_by(thick, angle) %>% 
+      summarize(mean_E = mean(E)),
+    mapping = aes(x = thick, y = mean_E, color = "Average E"),
+  ) +
+  facet_grid(angle ~ ., scales = "free_y")
+plot_mu <-
+  ggplot() +
+  geom_point(
+    data = df_stang_long,
+    mapping = aes(x = thick, y = mu)
+  ) +
+  geom_line(
+    data = df_stang_long %>% 
+      group_by(thick, angle) %>% 
+      summarize(mean_mu = mean(mu)),
+    mapping = aes(x = thick, y = mean_mu, color = "Average mu"),
+  ) +
+  facet_grid(angle ~ ., scales = "free_y")
+ggarrange(plot_E, plot_mu, ncol = 1, nrow = 2)
 ```
 
 **Observations**:
 
-- (Address your question from q1 here)
+- It's tempting to say that `E` and `mu` decreases as thickness increases. However, the relationship from the plot seems nonlinear and varying according to the angle and the thickness.
 
 ### __q4__ Consider the following statement:
 
@@ -138,8 +176,7 @@ Note that the "amount of material" would vary with the thickness of a tested pla
 ```{r q4-vis}
 ## NOTE: No need to change; run this chunk
 df_stang_long %>%
-
-  ggplot(aes(nu, E, color = as_factor(thick))) +
+  ggplot(aes(mu, E, color = as_factor(thick))) +
   geom_point(size = 3) +
   theme_minimal()
 ```
@@ -147,7 +184,7 @@ df_stang_long %>%
 **Observations**:
 
 - Does this graph support or contradict the claim above?
-  - (Your response here)
+  - The graph above shows some degree of variance in E, especially when the thickness is 0.081 versus any other. But I'm uncertain whether the degree of decrease in E is sufficient to claim that the elasticity is not an intensive property of the material since I don't know the how significant of a difference this is relative to other alloys. 
 
 # References
 <!-- -------------------------------------------------- -->

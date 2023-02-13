@@ -69,7 +69,8 @@ In `R` we access a density by prefixing its name with the letter `d`.
 ```{r q1-task}
 ## TODO: Complete this code
 df_q1 <-
-  tibble(x = seq(-5, +5, length.out = 100))
+  tibble(x = seq(-5, +5, length.out = 100)) %>% 
+  mutate(d = dunif(x, min = -1, max = 1))
 ```
 
 Use the following test to check your answer.
@@ -157,10 +158,16 @@ df_q2 <- map_dfr(
   }
 )
 ## TODO: Create the figure
+ggplot() +
+  geom_density(
+    data = df_q2,
+    mapping = aes(Z, group = n, color = n)
+    )
 ```
 
 **Observations**
-- Write your observation about the densities and `n` here.
+- As n increases, the samples show more centering around 0, similar to the normal distribution.
+- Lower n tends result in more bumps in the curve.
 
 ## Not Everything is Normal
 <!-- -------------------------------------------------- -->
@@ -170,7 +177,7 @@ A *very common misconception* is that drawing more samples will make *anything* 
 ### __q3__ Run the code below and inspect the resulting histogram. Increase `n_diamonds` below to increase the number of samples drawn: Do this a few times for an increasing number of samples. Answer the questions under *observations* below.
 
 ```{r q3-task}
-n_diamonds <- 10
+n_diamonds <- 1000
 
 diamonds %>%
   filter(cut == "Good") %>%
@@ -182,7 +189,9 @@ diamonds %>%
 **Observations**:
 
 - Does the histogram look like a normal for *any* value of `n_diamonds`?
+No, the histogram doesn't become any more normal. 
 - The normal density can take any value between negative infinity and positive infinity. Does that make sense for diamond `carat` values? Why or why not?
+It doesn't make sense because the carat size is always greater than zero and there is generally an upper limit to the size of the carat as well.
 
 The normal density *is* a good model for some physical phenomena, such as the set of heights among a population. However, it is not always a good model. One reason the normal density "shows up" a lot is because it is involved in *estimation*, which we'll talk more about when we later discuss the central limit theorem.
 
