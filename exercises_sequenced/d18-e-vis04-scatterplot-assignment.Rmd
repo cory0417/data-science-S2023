@@ -22,6 +22,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r library}
 library(tidyverse)
+library(ggrepel)
 
 ```
 
@@ -92,11 +93,14 @@ looks.
 ## TODO: Add a "gam" and "lm" smooth to the following plot
 diamonds %>%
   ggplot(aes(carat, price)) +
-  geom_point()
+  geom_point() +
+  geom_smooth(method = "gam") + 
+  geom_smooth(method = "lm")
 ```
 
 **Observations**:
 - Does the "gam" trend look linear?
+"gam" trend is similar to the "lm" trend up to `carat` 2.5 but significantly diverges afterwards.
 
 ### __q2__ Add non-overlapping labels to the following scattterplot using the
 provided `df_annotate`.
@@ -118,7 +122,12 @@ df_annotate <-
 
 mpg %>%
   ggplot(aes(displ, hwy)) +
-  geom_point(aes(color = class))
+  geom_point(aes(color = class)) +
+  geom_label_repel(
+    data = df_annotate,
+    aes(label = class, fill = class)
+  ) +
+guides(fill = guide_legend(override.aes = aes(label = "")))
 ```
 
 ### __q3__ Study the following scatterplot: Note whether city (`cty`) or highway
@@ -144,7 +153,9 @@ mpg %>%
 
 **Observations**:
 - Which tends to be larger? `cty` or `hwy` mileage?
+`hwy` mileage tends to be larger for the same `Engine displacement`. 
 - What is the trend of mileage with `displ`?
+As `displ` increases, mileage decreases up to about 5 liters. However, there are some mild increases in mileage between 5 to 7 liters of engine displacement. 
 
 ## Aside: Scatterplot vs bar chart
 <!-- -------------------------------------------------- -->
