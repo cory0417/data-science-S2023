@@ -24,7 +24,6 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r library}
 library(tidyverse)
 library(nycflights13)
-
 ```
 
 ## Dangers of Binding!
@@ -57,7 +56,7 @@ bind_cols(beatles1, beatles2)
 
 ### __q1__ Describe what is wrong with the result of `bind_cols` above and how it happened.
 
-- Write your answer here
+- It mixed up the order of the rows and combined the data frames together. 
 
 We'll use the following `beatles3` to *correctly* join the data.
 
@@ -87,7 +86,10 @@ beatles_joined <-
 ```{r q2-task}
 df_q2 <-
 ## TODO: Join beatles1 and beatles2 using beatles3 to match rows
-
+beatles1 %>% 
+  left_join(beatles3, by = "name") %>% 
+  left_join(beatles2, by = "surname")
+  
 df_q2
 ```
 
@@ -95,7 +97,7 @@ Use the following test to check your work:
 
 ```{r q2-tests}
 ## NOTE: No need to change this
-assertthat::assert_that(all_equal(df_q2, beatles_joined))
+assertthat::assert_that(all.equal(df_q2, beatles_joined))
 print("Nice!")
 ```
 
@@ -126,8 +128,12 @@ filter the `airports` dataset, or use Google!
 
 ```{r q3-task}
 criteria <-
-## TODO: Use expand_grid to create a criteria dataframe
-
+# TODO: Use expand_grid to create a criteria dataframe
+  airports %>%
+  filter(str_detect(name, "San Francisco | San Jose | Oakland", negate = FALSE)) %>% 
+  select(dest = faa) %>% 
+  expand_grid(month = 8:9)
+    
 criteria
 ```
 
@@ -170,6 +176,7 @@ dataset we built above!
 df_q4 <-
   flights %>%
 ## TODO: Use expand_grid to create a criteria dataframe
+  semi_join(criteria, by = c('dest', 'month'))
 
 df_q4
 ```
