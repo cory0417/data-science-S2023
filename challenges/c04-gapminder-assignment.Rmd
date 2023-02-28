@@ -1,7 +1,7 @@
 ---
 title: "Gapminder"
-author: "(Your name here)"
-date: 2020-
+author: "Daeyoung Kim"
+date: 2023-02-26
 output:
   github_document:
     toc: true
@@ -37,7 +37,9 @@ All the deliverables stated in the rubrics above are due **at midnight** before 
 ```{r setup}
 library(tidyverse)
 library(gapminder)
-
+library(rstatix)
+library(ggrepel)
+library(latex2exp)
 ```
 
 *Background*: [Gapminder](https://www.gapminder.org/about-gapminder/) is an
@@ -55,12 +57,14 @@ First, we'll go through a round of *guided EDA*. Try to pay attention to the hig
 dataset?
 
 ```{r q0-task}
-## TASK: Do your "first checks" here!
+gapminder %>% 
+  head(5)
 ```
 
 **Observations**:
 
 - Write all variable names here
+`country`, `continent`, `year`, `lifeExp`, `pop`, and `gdpPercap` are variable in the dataset.
 
 ### __q1__ Determine the most and least recent years in the `gapminder` dataset.
 
@@ -68,8 +72,12 @@ dataset?
 
 ```{r q1-task}
 ## TASK: Find the largest and smallest values of `year` in `gapminder`
-year_max <- NA_real_
-year_min <- NA_real_
+year_max <- max(pull(gapminder, year))
+year_min <- min(pull(gapminder, year))
+
+gapminder %>% 
+  filter(year == year_max) %>% 
+  filter(continent == "Oceania")
 ```
 
 Use the following test to check your work.
@@ -95,26 +103,84 @@ You may encounter difficulties in visualizing these data; if so document your ch
 
 ```{r q2-task}
 ## TASK: Create a visual of gdpPercap vs continent
-```
+gapminder %>% 
+  filter(year == year_min) %>% 
+  group_by(continent) %>% 
+  mutate(outlier = ifelse(is_outlier(gdpPercap, coef = 1.5), TRUE, FALSE)) %>% 
+  ggplot(mapping = aes(continent, gdpPercap)) +
+  geom_boxplot(outlier.color = 'red') + 
+  scale_y_log10() +
+  geom_label_repel(
+    data = . %>% filter(outlier == TRUE),
+    aes(label = country),
+    box.padding = 0.2,
+    na.rm = TRUE,
+    size = 3
+    ) +
+  labs( 
+    y = "GDP per Capita ($)",
+    x = "Continent",
+    title = "GDP per Capita vs Continent in 1952"
+  ) +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    plot.caption = element_text(hjust = 0.5)
+  )
 
+gapminder %>% 
+  filter(year == year_min) %>% 
+  group_by(continent) %>% 
+  mutate(outlier = ifelse(is_outlier(gdpPercap, coef = 1.5), TRUE, FALSE)) %>% 
+  ggplot(mapping = aes(continent, gdpPercap)) +
+  geom_boxplot(outlier.color = 'red') + 
+  coord_cartesian(ylim = c(200, 15000)) +
+  geom_label_repel(
+    data = . %>% filter(outlier == TRUE),
+    aes(label = country),
+    box.padding = 0.2,
+    na.rm = TRUE,
+    size = 3
+    ) +
+  geom_text(x = 3, y = 14500, size = 2.5, aes(label = "($108,382)"), data = data.frame(year = 1952)) +
+  labs( 
+    y = "GDP per Capita ($)",
+    x = "Continent",
+    title = "GDP per Capita vs Continent in 1952"
+  ) +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    plot.caption = element_text(hjust = 0.5)
+  )
+```
 **Observations**:
 
-- Write your observations here
+- There are significant differences in the median `gdpPercap` with regards to `continent`. 
+- There are some countries that earn much more than other countries in the same `continent`. 
+- There are very few number of countries that belong to the continent of `Oceania`.
+- There are outliers that are above the 75th quantile but not below the 25th quantile. 
 
 **Difficulties & Approaches**:
 
-- Write your challenges and your approach to solving them
+- Because there is a huge outlier in the continent of Asia, it was extremely difficult to make out much meaningful observations. Therefore, a logarithmic scale was applied to the y-axis to better visualize the plot.
+- To have a better understanding of the context of the outliers, I added names of the country as label to the outliers. 
+- However, due to the logarithmic scale, it was difficult to observe the relative differences between `continent` that had `gdpPercap` in a different location in the y-axis. Thus, I zoomed in to the plot excluding `Kuwait` with a linear y-axis scale.
+
 
 ### __q3__ You should have found *at least* three outliers in q2 (but possibly many more!). Identify those outliers (figure out which countries they are).
 
 ```{r q3-task}
 ## TASK: Identify the outliers from q2
+gapminder %>% 
+  filter(year == year_min) %>% 
+  group_by(continent) %>% 
+  mutate(outlier = ifelse(is_outlier(gdpPercap, coef = 1.5), TRUE, FALSE)) %>% 
+  filter(outlier == TRUE)
 ```
 
 **Observations**:
 
 - Identify the outlier countries from q2
-  - (Your response here)
+  - Angola, Bahrain, Canada, Gabon, Kuwait, South Africa, Switzerland, United States, Venezuela.
 
 *Hint*: For the next task, it's helpful to know a ggplot trick we'll learn in an upcoming exercise: You can use the `data` argument inside any `geom_*` to modify the data that will be plotted *by that geom only*. For instance, you can use this trick to filter a set of points to label:
 
@@ -138,11 +204,42 @@ gapminder %>%
 
 ```{r q4-task}
 ## TASK: Create a visual of gdpPercap vs continent
+gapminder %>% 
+  filter(year == year_max | year == year_min) %>% 
+  group_by(year, continent) %>% 
+  mutate(outlier = ifelse(is_outlier(gdpPercap, coef = 1.5), TRUE, FALSE)) %>% 
+  ggplot(mapping = aes(continent, gdpPercap)) +
+  facet_wrap(~year, nrow = 1) +
+  geom_boxplot(outlier.color = "red") + 
+  # scale_y_log10() +
+  coord_cartesian(ylim = c(100, 50000)) +
+  geom_label_repel(
+    data = . %>% filter(outlier == TRUE),
+    aes(label = country),
+    box.padding = 0.2,
+    na.rm = TRUE,
+    size = 2.5,
+    nudge_y = 10000,
+    nudge_x = -1
+    ) +
+  geom_text(x = 2.7, y = 48000, size = 2.2, aes(label = "(Asia, $108,382)"), data = data.frame(year = 1952)) +
+  labs( 
+    y = "GDP per Capita ($)",
+    x = "Continent",
+    title = "GDP per Capita vs Continent in 1952 and 2007"
+  ) +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    plot.caption = element_text(hjust = 0.5)
+  )
 ```
 
 **Observations**:
 
-- Write your observations here
+- As shown by the increased IQR, the disparity between countries in GDP per Capita has drastically increased. 
+- Kuwait is no longer an outlier. 
+- The disparity between continents in GDP per Capita has also drastically increased looking at the differences in the median. 
+- `United States`, `Canada`, `South Africa`, and `Gabon` are the only countries that have stayed as outliers. 
 
 # Your Own EDA
 <!-- -------------------------------------------------- -->
@@ -151,20 +248,158 @@ Now it's your turn! We just went through guided EDA considering the GDP per capi
 
 ### __q5__ Create *at least* three new figures below. With each figure, try to pose new questions about the data.
 
-```{r q5-task1}
-## TASK: Your first graph
+```{r q5-task1-1}
+gapminder %>% 
+  group_by(year, continent) %>% 
+  summarise(median = median(gdpPercap), .groups = "keep") %>% 
+  ggplot() +
+  geom_point(aes(x = year, y = median, color = continent)) + 
+  geom_line(aes(x = year, y = median, color = continent)) +
+  labs(
+    x = "Year",
+    y = "Median GDP per Capita ($)",
+    title = "Median GDP per Capita vs Year",
+    caption = "The plot shows the median GDP per Capita of different continents over time.",
+    color = "Continent"
+  )
 ```
 
-- (Your notes and observations here)
+- The median GDP per Capita in different continents show how the the medians diverge over time. 
+- The order of the overlaying lines do not change over time; it's constant in the order of Oceania - Europe - Americas - Asia - Africa from top to bottom.
+- To more specifically study the observed divergence of the medians, I made a plot of the variance between the medians of each continent over time. 
 
-```{r q5-task2}
-## TASK: Your second graph
+
+```{r q5-task1-2}
+df_median_variance <- 
+  gapminder %>%
+  group_by(year, continent) %>%
+  summarise(median = as.numeric(median(gdpPercap, na.rm = TRUE)), .groups = "keep") %>% 
+  pivot_wider(names_from = continent, values_from = median) %>% 
+  # multiplying by n-1/n to get population variance
+  data.frame(variance = apply(.[-1], 1, var) * (ncol(.[-1])-1)/ncol(.[-1]))
+
+df_median_variance %>% 
+  ggplot() +
+  geom_point(aes(year, variance)) +
+  geom_line(aes(year, variance)) +
+  labs(
+    x = "Year",
+    y = TeX("Variance of Median GDP per Capita($\\$^2$)"),
+    title = "Variance of Median GDP per Capita vs Year",
+    caption = "The plot shows the variance of median GDP per Capita of between each continents over time."
+  )
 ```
 
-- (Your notes and observations here)
+- Because of the unit of variance, the quantitative value of variance doesn't seem to convey too much meaning. 
+- Similar to the observation in the prior plot, the variance exponentially increases over time. 
+- This could signify increasing disparities in GDP per Capita among continents. 
 
-```{r q5-task3}
-## TASK: Your third graph
+```{r q5-task2-1}
+gapminder %>% 
+  ggplot() +
+  geom_point(mapping = aes(x = lifeExp, y = gdpPercap, color = country), size = 0.8, show.legend = FALSE) +
+  labs(
+    x = "Life Expectancy (year)",
+    y = "GDP per Capita ($)",
+    title = "GDP per Capita vs Life Expectancy",
+    caption = "The plot shows the life expectancy and GDP per Capita of all years of every country present on the dataset."
+  )
 ```
 
-- (Your notes and observations here)
+- Initial assumption was that `lifeExp` and `gdpPercap` would have positive correlation. The assumption came from the logic that generally when a country is more economically flourishing, basic survival needs and medical needs would be better fulfilled.
+- To validate my assumptions, I first made a scatter plot of `lifeExp` vs `gdpPercap` and saw a monotonic positive correlation between the two variables. 
+
+``` {r q5-task2-2}
+df_life_gdp <- 
+  gapminder %>% 
+  group_by(country, continent) %>% 
+  summarize(correlation = cor(lifeExp, gdpPercap,
+    method = "spearman",
+    use = "na.or.complete"
+    ), .groups = "keep"
+  )
+
+df_life_gdp %>% 
+  ggplot() +
+  geom_point(mapping = aes(x = country, y = correlation, color = country), show.legend = FALSE) +
+  theme(axis.text.x=element_blank(),
+      axis.ticks.x=element_blank()) +
+  geom_label_repel(
+    data = . %>% 
+      filter(correlation < 0), 
+    aes(x = country, y = correlation, label = country)
+    ) +
+  labs(
+    x = "Country",
+    y = "Spearman Correlation Coefficient",
+    title = "Correlation between Life Expectancy and GDP per Capita vs Country",
+    caption = str_wrap("The plot shows the correlation between life expectancy and GDP per Capita evaluated through Spearman's rank correlation coefficient. The 18 labeled countries are those with negative coefficient values.", width = 120)
+  )
+```
+
+- To visualize the correlation, I made a plot of Spearman's coefficient vs country. 
+- As expected, a lot of countries had either near +1 or positive correlation coefficient. 
+- However, there were 18 countries with negative correlation coefficient.
+- I filtered the countries with correlation coefficient values less than 0. Out of 18 countries, 14 were African countries. 
+
+
+``` {r q5-task2-3}
+df_life_gdp_cor <-
+  df_life_gdp %>%
+  mutate(comparison = case_when(continent == "Africa" ~ "Africa", continent != "Africa" ~ "Rest of the World"))
+
+df_life_gdp_cor %>% 
+  ggplot() +
+  geom_density(mapping = aes(correlation, fill = comparison), alpha=.5) +
+  labs(
+    fill = "Continent"
+  ) +
+  labs(
+    x = "Spearman Correlation Coefficient",
+    y = "Density",
+    title = "Density Plot of Spearman Correlation Coefficient",
+    caption = str_wrap("The density plot shows the spread of correlation coefficients for life expectancy and GDP per Capita. The plot visualizes the spread for Africa and the rest of the world separately for comparison.", width = 90)
+  )
+```
+
+- Then to visualize the difference between the spread of the Spearman's correlation coefficient for Africa and the rest of the world, I made a density plot of the correlation coefficient. 
+- The spread of the rest of the world was much concentrated near +1, validating my initial assumption for positive correlation. 
+- However, Africa's spread covered from positive to negative correlation more evenly.
+- As for the *negative* correlation coefficient, I took a step further to investigate into what those might mean contextually. 
+
+
+```{r q5-task2-4}
+gapminder %>% 
+  group_by(country) %>% 
+  mutate(correlation = cor(lifeExp, gdpPercap,
+    method = "spearman",
+    use = "na.or.complete"
+    )
+  ) %>% 
+  filter(correlation < 0) %>% 
+  filter(continent == "Africa") %>% 
+  ggplot() +
+  geom_point(mapping = aes(x = lifeExp, y = gdpPercap, color = country)) +
+  geom_line(mapping = aes(x = lifeExp, y = gdpPercap, color = country)) +
+  geom_label_repel(
+    data = . %>% group_by(country) %>% filter(gdpPercap == max(gdpPercap)) %>% filter(gdpPercap > 3000),
+    aes(x = lifeExp, y = gdpPercap, label = country)
+  ) +
+  labs(
+    x = "Life Expectancy (year)",
+    y = "GDP per Capita ($)",
+    title = str_wrap("GDP per Capita vs Life Expectancy for African Countries with Correlation Coefficient < 0", width = 50),
+    caption = str_wrap("The plot shows the relationship between life expectancy and GDP per Capita for African countries with negative correlation coefficient values.", width = 90)
+  )
+```
+
+- To gain a bit more insight into what the actual magnitude of `lifeExp` and `gdpPercap` might be, I went back to the scatter plot to plot only the filtered countries. Except Djibouti and Angola, all the countries had `gdpPercap` less than \$2,000 and `lifeExp` less than about 65 year old. Most countries seemed to have a big range in the `lifeExp`. 
+- Here were some research on few of the countries on the plot:
+  - Senegal: Long history of separatist war and political instability since the 1980s to present.
+  - Mozambique: War of independence since the 1960s to 1975. Series of political turmoil and changes in the political system.
+  - Comoros: Independence in the early 1970s. Many political leaders/dictators killed in a coup or assassinations and secessionist movements. Violence on the islands continues even to date. 
+- Final thoughts: 
+  - Most countries had a positive monotonic correlation between `lifeExp` and `gdpPercap`. 
+  - The vast majority of countries with a negative correlation were in Africa. 
+  - The GDP per capita of those countries were very low ranging from about \$500 to \$2,000, which makes sense because the median GDP per capita of Africa was much lower than other continents as shown in `q4`. 
+  - Many of the countries with negative correlation coefficients in Africa had various political and economical issues in the past. 

@@ -66,8 +66,8 @@ genes
 ```{r q1-task}
 df_q1 <-
   genes %>%
-## TODO: pivot and unite here!
-
+  unite(col = "offspring", sep = "", remove = FALSE, parent1, parent2) %>%   
+  pivot_wider(names_from = parent2, values_from = offspring)
 df_q1
 ```
 
@@ -107,8 +107,11 @@ separate to tidy these data.
 ```{r q2-task}
 df_q2 <-
   alloys_mod %>%
-## TODO: pivot and separate here!
-
+  pivot_longer(
+    cols = starts_with("E") | starts_with("mu"), 
+    names_to = c(".value", "angle"), 
+    names_sep = -2
+    )
 df_q2
 ```
 
