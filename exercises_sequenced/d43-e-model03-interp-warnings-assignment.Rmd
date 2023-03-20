@@ -64,8 +64,14 @@ Fit two models on `diamonds_train`, one for `carat <= 1` and one for `carat > 1`
 ## TODO: Fit two models, one to lower (carat <= 1) and
 #        one to upper (carat > 1) diamonds.
 #        Use formula = price ~ cut
-fit_lower <- NA
-fit_upper <- NA
+fit_lower <- 
+  diamonds_train %>% 
+  filter(carat <= 1) %>% 
+  lm(formula = price ~ cut)
+fit_upper <-
+  diamonds_train %>% 
+  filter(carat > 1) %>% 
+  lm(formula = price ~ cut)
 
 ## NOTE: No need to modify this code
 tibble(cut = c("Fair", "Good", "Very Good", "Premium", "Ideal")) %>%
@@ -89,7 +95,10 @@ tibble(cut = c("Fair", "Good", "Very Good", "Premium", "Ideal")) %>%
 **Observations**:
 
 - What model predictions did you expect?
+I expected the prices to increase for better cuts.
+
 - Did the model predictions match your expectations?
+It matched only for upper carat diamonds. 
 
 *Why is this happening?* Let's investigate!
 
@@ -101,8 +110,15 @@ Repeat the same exercise above, but instead of `price ~ cut` fit `carat ~ cut`. 
 ## TODO: Fit two models, one to lower (carat <= 1) and
 #        one to upper (carat > 1) diamonds.
 #        Use formula = carat ~ cut
-fit_carat_lower <- NA
-fit_carat_upper <- NA
+fit_carat_lower <-
+  diamonds_train %>%
+  filter(carat <= 1) %>%
+  lm(formula = carat ~ cut)
+
+fit_carat_upper <-
+  diamonds_train %>%
+  filter(carat > 1) %>%
+  lm(formula = carat ~ cut)
 
 ## NOTE: No need to change this code
 tibble(cut = c("Fair", "Good", "Very Good", "Premium", "Ideal")) %>%
@@ -126,7 +142,10 @@ tibble(cut = c("Fair", "Good", "Very Good", "Premium", "Ideal")) %>%
 **Observations**:
 
 - What trends do the lower and upper models between `carat` and `cut`?
+The lower model shows a decreasing relationship whereas the upper model shows a generally flat relationship. 
+
 - How might this trend relate to the `price ~ cut` behavior we saw above?
+For lower model, if the cut quality is lower, the carat size tends to be bigger, which might explain the higher price for lower cut qualities. 
 
 We can try to fix these issues by adding more predictors. But that leads to our second warning....
 
@@ -144,13 +163,13 @@ The following task will demonstrate this effect.
 #        formula = price ~ cut
 fit_carat_cut <-
   diamonds_train %>%
-  filter(carat <= 1)
-  # lm()
+  filter(carat <= 1) %>%
+  lm(formula = price ~ carat + cut)
 
 fit_cut_only <-
   diamonds_train %>%
-  filter(carat <= 1)
-  # lm()
+  filter(carat <= 1) %>%
+  lm(formula = price ~ cut)
 
 ## NOTE: No need to change this code
 tibble(
@@ -177,9 +196,14 @@ tibble(
 **Observations**:
 
 - What effect does `cut` have on `price` for the `cut_only` model?
+It's a decreasing relationship. 
+
 - What effect does `cut` have on `price` for the `carat_cut` model?
+It's a increasing relationship. 
+
 - What might account for this behavior?
   - *Note*: Feel free to peek at the solution for this answer; this is a *subtle point*.
+  For the `cut_only` model, the cuts act as a surrogate for carat. However, when the carat is included in the model, it can uses carat to predict the price and can see the behavior of the cut more clearly.
 
 ## Main Punchline
 

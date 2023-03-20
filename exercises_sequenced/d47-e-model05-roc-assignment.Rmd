@@ -211,10 +211,7 @@ And there are two ways in which we can be incorrect:
 - **False Negative**: We predicted a case to be negative, but in reality it was positive; e.g. we predicted that a given patient does not have heard disease, but in reality they do have the disease.
 
 Note that we might have different concerns about false positives and negatives.
-For instance in the heart disease case, we might be more concerned with flagging
-all possible cases of heart disease, particularly if follow-up examination can
-diagnose heart disease with greater precision. In that case, we might want to
-avoid false negatives but accept more false positives.
+For instance in the heart disease case, we might be more concerned with flagging all possible cases of heart disease, particularly if follow-up examination can diagnose heart disease with greater precision. In that case, we might want to avoid false negatives but accept more false positives.
 
 We can make quantitative judgments about these classification tradeoffs by
 controlling classification rates with a decision threshold.
@@ -256,8 +253,23 @@ pr_threshold <- 0.5
 ## TODO: compute true positive rate (TPR) and false positive rate (FPR) with the
 ##       given pr_threshold. Assign these to the columns TPR and FPR.
 df_q1 <-
-  df_basic
-
+  df_basic %>% 
+  mutate(
+    true_positive = (pr_heart_disease > pr_threshold) & heart_disease,
+    false_positive = (pr_heart_disease > pr_threshold) & !heart_disease,
+    true_negative = (pr_heart_disease <= pr_threshold) & !heart_disease,
+    false_negative = (pr_heart_disease <= pr_threshold) & heart_disease
+  ) %>%
+  summarize(
+    TP = sum(true_positive),
+    FP = sum(false_positive),
+    TN = sum(true_negative),
+    FN = sum(false_negative)
+  ) %>%
+  mutate(
+    TPR = TP / (TP + FN),
+    FPR = FP / (FP + TN)
+  )
 df_q1
 ```
 
@@ -319,6 +331,7 @@ df_basic %>%
 **Observations**:
 
 - Is this an effective or ineffective classifier? How do you know?
+It's not a great classifier since the line stays close to the diagonal. It's sometimes even worse than random guessing. 
 
 ## Practice Assessing Classifiers
 <!-- ------------------------- -->
@@ -361,7 +374,10 @@ df_cheating %>%
 **Observations**:
 
 - Is this an effective classifier?
+It's an effective classifier since it has the greates possible area under the curve. 
+
 - What explains this model's performance? Is this model valid for prediction?
+It's the predicting the heart disease using the result itself since `heart_disease = num > 0`.
 
 Next you'll fit your own model and assess its performance.
 
@@ -371,9 +387,16 @@ Next you'll fit your own model and assess its performance.
 ## TODO: Fit your own logistic regression model on df_train, predict class
 ##       probabilities on df_validate.
 ##
-fit_q4 <- NA
+fit_q4 <- 
+  glm(
+    formula = heart_disease ~ cp + thal,
+    data = df_train,
+    family = "binomial"
+  )
 df_q4 <-
-  df_validate
+  df_validate %>% 
+  add_predictions(fit_q4, var = "log_odds_ratio") %>% 
+  mutate(pr_heart_disease = inv.logit(log_odds_ratio))
 
 ## Here's another model for comparison
 fit_baseline <- glm(
@@ -418,7 +441,10 @@ bind_rows(
 **Observations**:
 
 - Is your model more or less accurate at classifying than `fit_baseline`? How do you know?
+It's more accurate since the area under the curve is greater than that of `fit_baseline`.
+
 - As you sweep from low to high values of FPR, what happens to the values of TPR? What "tradeoff" do you see in the two quantities?
+TPR increases as FPR increases. However, after a certain FPR, the increase in TPR starts to flatten. The “tradeoff” is that we can have an arbitrarily high TPR, but we “pay” for this through an increase in the FPR.
 
 ## Selecting a Threshold
 
@@ -456,8 +482,13 @@ df_thresholds %>%
 **Observations**:
 
 - What is a reasonable value for TPR, and why did you pick that value?
+From the plot, a reasonable value for TPR would be about 0.9 since values any higher will require a significant drop in the probability threshold. Also, we need to maximize the True Positive Rate because it's crucial for patients to get treated. 
+
 - What values of `pr_threshold` meet or exceed that TPR?
+About 0.45. 
+
 - What specific value of `pr_threshold` do you pick, and why?
+I picked 0.45 since it increases TPR by a big amount while covering the desired TPR value. 
 
 <!-- include-exit-ticket -->
 # Exit Ticket

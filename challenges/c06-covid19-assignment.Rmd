@@ -1,7 +1,7 @@
 ---
 title: "COVID-19"
-author: "(Your name here)"
-date: 2020-
+author: "Daeyoung Kim"
+date: 2023-03-19
 output:
   github_document:
     toc: true
@@ -78,7 +78,9 @@ That's the high-level view; now let's dig into the details.
 
 ```{r q1-task}
 ## TASK: Load the census bureau data with the following tibble name.
-df_pop <- NA
+df_pop <- 
+  read_csv(file = "data/ACSDT5Y2018.B01003-Data.csv", skip = 1, col_select = c("Geography", "Geographic Area Name", "Estimate!!Total", "Margin of Error!!Total")) %>% 
+  rename("id" = "Geography")
 ```
 
 *Note*: You can find information on 1-year, 3-year, and 5-year estimates [here](https://www.census.gov/programs-surveys/acs/guidance/estimates.html). The punchline is that 5-year estimates are more reliable but less current.
@@ -94,7 +96,7 @@ The New York Times is publishing up-to-date data on COVID-19 on [GitHub](https:/
 
 ```{r q2-task}
 ## TASK: Find the URL for the NYT covid-19 county-level data
-url_counties <- NA_character_
+url_counties <- "https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties-2020.csv"
 ```
 
 Once you have the url, the following code will download a local copy of the data, then load the data into R.
@@ -135,7 +137,10 @@ To join these datasets, we'll need to use [FIPS county codes](https://en.wikiped
 
 ```{r q3-task}
 ## TASK: Create a `fips` column by extracting the county code
-df_q3 <- NA
+df_q3 <- 
+  df_pop %>% 
+  mutate(fips = str_extract(id, "US\\d+")) %>% 
+  mutate(fips = str_extract(fips, "\\d+"))
 ```
 
 Use the following test to check your answer.
@@ -155,7 +160,9 @@ print("Very good!")
 
 ```{r q4-task}
 ## TASK: Join df_covid and df_q3 by fips.
-df_q4 <- NA
+df_q4 <- 
+  left_join(df_covid, df_q3, by = "fips")
+df_q4
 ```
 
 For convenience, I down-select some columns and produce more convenient column
@@ -189,7 +196,12 @@ Now that we've done the hard work of loading and wrangling the data, we can fina
 ```{r q5-task}
 ## TASK: Normalize cases and deaths
 df_normalized <-
-  df_data
+  df_data %>% 
+  mutate(
+    cases_per100k = cases / population * 100000,
+    deaths_per100k = deaths / population * 100000
+           )
+df_normalized
 ```
 
 You may use the following test to check your work.
@@ -237,19 +249,39 @@ Before turning you loose, let's complete a couple guided EDA tasks.
 
 ```{r q6-task}
 ## TASK: Compute mean and sd for cases_per100k and deaths_per100k
+mean_sd_cases_deaths <-
+  tibble(
+  "mean_cases_per100k" =  mean(df_normalized$cases_per100k, na.rm = TRUE),
+  "sd_cases_per100k" = sd(df_normalized$cases_per100k, na.rm = TRUE),
+  "mean_deaths_per100k" = mean(df_normalized$deaths_per100k, na.rm = TRUE),
+  "sd_deaths_per100k" = sd(df_normalized$deaths_per100k, na.rm = TRUE)
+)
+
 ```
 
 ### __q7__ Find the top 10 counties in terms of `cases_per100k`, and the top 10 in terms of `deaths_per100k`. Report the population of each county along with the per-100,000 counts. Compare the counts against the mean values you found in q6. Note any observations.
 
 ```{r q7-task}
 ## TASK: Find the top 10 max cases_per100k counties; report populations as well
-
+df_normalized %>% 
+  group_by(county, population) %>% 
+  summarize(mean_cases_per100k = mean(cases_per100k, na.rm = TRUE)) %>% 
+  arrange(desc(mean_cases_per100k)) %>% 
+  head(10)
 ## TASK: Find the top 10 deaths_per100k counties; report populations as well
+df_normalized %>% 
+  group_by(county, population) %>% 
+  summarize(mean_deaths_per100k = mean(deaths_per100k, na.rm = TRUE)) %>% 
+  arrange(desc(mean_deaths_per100k)) %>% 
+  head(10)
 ```
 
 **Observations**:
 
-- (Note your observations here!)
+- I took the mean of the cases and deaths per 100k of each counties and compared them to the mean of all the cases and deaths in the US. 
+- Both the top 10 means for cases and deaths are much greater than the mean of all the counties. 
+- Trousdale has a particularly high mean cases per 100k even compared to other means cases in the top 10. 
+- Population size is smaller than 30,000 for all counties in top 10 for both mean deaths and cases except McKinley. 
 
 ## Self-directed EDA
 <!-- ------------------------- -->
@@ -267,6 +299,31 @@ Before turning you loose, let's complete a couple guided EDA tasks.
 - Your own idea!
 
 **DO YOUR OWN ANALYSIS HERE**
+```{r}
+mean_cases_per100k_sub1000 <- 
+  df_normalized %>% 
+  filter(population < 1000) %>% 
+  summarize(mean_cases = mean(cases_per100k), mean_deaths = mean(deaths_per100k))
+
+df_normalized %>% 
+  filter(population < 1000) %>% 
+  ggplot(aes(population, cases_per100k, color = county)) +
+  geom_point() +
+  geom_hline(linetype = 6, mapping = aes(yintercept = mean_sd_cases_deaths$mean_cases_per100k, color = "Mean cases per 100k")) +
+  geom_hline(yintercept = mean_cases_per100k_sub1000$mean_cases)
+
+df_normalized %>% 
+  filter(population < 1000) %>% 
+  ggplot(aes(population, deaths_per100k, color = county)) +
+  geom_point() +
+  geom_hline(linetype = 6, mapping = aes(yintercept = mean_sd_cases_deaths$mean_deaths_per100k, color = "Mean deaths per 100k")) +
+  geom_hline(yintercept = mean_cases_per100k_sub1000$mean_deaths)
+```
+
+
+Observations:
+
+- Small counties with less than 1000 in population size have slightly lower mean cases per 100k and deaths per 100k than the mean of those for the US. 
 
 ### Aside: Some visualization tricks
 <!-- ------------------------- -->
@@ -275,20 +332,20 @@ These data get a little busy, so it's helpful to know a few `ggplot` tricks to h
 
 ```{r ma-example}
 ## NOTE: No need to change this; just an example
-df_normalized %>%
-  filter(state == "Massachusetts") %>%
-
-  ggplot(
-    aes(date, cases_per100k, color = fct_reorder2(county, date, cases_per100k))
-  ) +
-  geom_line() +
-  scale_y_log10(labels = scales::label_number_si()) +
-  scale_color_discrete(name = "County") +
-  theme_minimal() +
-  labs(
-    x = "Date",
-    y = "Cases (per 100,000 persons)"
-  )
+# df_normalized %>%
+#   filter(state == "Massachusetts") %>%
+# 
+#   ggplot(
+#     aes(date, cases_per100k, color = fct_reorder2(county, date, cases_per100k))
+#   ) +
+#   geom_line() +
+#   scale_y_log10(labels = scales::label_number_si()) +
+#   scale_color_discrete(name = "County") +
+#   theme_minimal() +
+#   labs(
+#     x = "Date",
+#     y = "Cases (per 100,000 persons)"
+#   )
 ```
 
 *Tricks*:
