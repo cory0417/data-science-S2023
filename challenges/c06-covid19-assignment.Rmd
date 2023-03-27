@@ -332,20 +332,23 @@ These data get a little busy, so it's helpful to know a few `ggplot` tricks to h
 
 ```{r ma-example}
 ## NOTE: No need to change this; just an example
-# df_normalized %>%
-#   filter(state == "Massachusetts") %>%
-# 
-#   ggplot(
-#     aes(date, cases_per100k, color = fct_reorder2(county, date, cases_per100k))
-#   ) +
-#   geom_line() +
-#   scale_y_log10(labels = scales::label_number_si()) +
-#   scale_color_discrete(name = "County") +
-#   theme_minimal() +
-#   labs(
-#     x = "Date",
-#     y = "Cases (per 100,000 persons)"
-#   )
+df_normalized %>%
+  filter(state == "Massachusetts", !is.na(fips)) %>%
+  ggplot(
+    aes(
+      date,
+      cases_per100k,
+      color = fct_reorder2(county, date, cases_per100k)
+      )
+  ) +
+  geom_line() +
+  scale_y_log10(labels = scales::label_number_si()) +
+  scale_color_discrete(name = "County") +
+  theme_minimal() +
+  labs(
+    x = "Date",
+    y = "Cases (per 100,000 persons)"
+  )
 ```
 
 *Tricks*:
