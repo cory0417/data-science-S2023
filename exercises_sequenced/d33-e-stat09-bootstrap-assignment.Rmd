@@ -73,7 +73,12 @@ v_mean_est[1:9]
 ```{r q1-task}
 ## TASK: Use the demo-map code above to mutate df_resample_norm, create the column mean_est
 df_q1 <-
-  df_resample_norm
+  df_resample_norm %>% 
+  mutate(mean_est = map_dbl(
+    df,
+    ~ summarize(.x, mean_est = mean(x)) %>% pull(mean_est)
+    )
+  )
 
 df_q1
 ```
@@ -116,7 +121,7 @@ df_q2 <-
   mutate(
     estimates = map(
       splits,
-      ~ analysis(.x) %>% summarize(mean_est = mean(x)) %>% pull(mean_est)
+      ~ analysis(.x) %>% pull(x) %>% fitdistr(densfun = 'normal') %>% tidy()
     )
   )
 
@@ -154,8 +159,13 @@ tibble(x = rnorm(n = 100)) %>%
 **Observations**:
 
 - Write your hypothesis about what will happen
+It'll underestimate the mean and the sd since it filters any value greater than or equal to 0. 
+
 - Is the sample representative of the population?
+It's not representative of the population. 
+
 - How are the bootstrap results affected?
+the mean and sd estimates are much less than the actual parameters. 
 
 The following code generates `100` different samples from a normal distribution (each with `n = 10`), and computes a very coarse bootstrap for each one.
 
@@ -166,7 +176,7 @@ The following code generates `100` different samples from a normal distribution 
 ```{r q4-task}
 ## TASK: Run this code,
 set.seed(101)
-times <- 10
+times <- 200
 
 df_q4 <-
   map_dfr(
@@ -195,7 +205,10 @@ df_q4 %>%
 **Observations**:
 
 - How does the observed coverage probability compare to the nominal `0.95` the procedure is seeking?
+It's much lower than 0.95 (about 0.7).
+
 - What setting of `n_boot` do you need to set such that the coverage probability approaches the desired `0.95`?
+I've gotten to 0.95 with 200 bootstrap samples. 
 
 *Aside*: The `rsample` function `int_pctl` actually complains when you give it fewer than `1000` replicates. Since you'll usually be running the bootstrap only a handful of times (rather than `100` above), you need not be stingy with bootstrap replicates. Do at least `1000` in most cases.
 

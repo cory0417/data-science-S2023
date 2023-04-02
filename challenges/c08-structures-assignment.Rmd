@@ -1,7 +1,7 @@
 ---
 title: "Structural Safety"
-author: "(Your name here)"
-date: 202X-XX-XX
+author: "Daeyoung Kim"
+date: 2023-04-01
 output:
   github_document:
     toc: true
@@ -50,11 +50,11 @@ filename_samples <- "./data/al_samples.csv"
 
 *Background*: The [strength](https://en.wikipedia.org/wiki/Ultimate_tensile_strength) of a material is the amount of mechanical stress it can survive before breaking. To illustrate: Stresses are internal forces that hold an object together when we try to squeeze, stretch, or otherwise deform a solid object. For instance, if we pull on a rectangular bar of material, internal stresses $\sigma$ work to keep the bar together.
 
-![Stress](./images/stress.png)
+![Stress](./images/stress.svg)
 
 By Jorge Stolfi - Own work, CC BY-SA 3.0, https://commons.wikimedia.org/w/index.php?curid=24499456
 
-*Strength* is a measure of how much internal stress an object can survive: A higher strength means a stronger material. This challenge's data are very simple: They are (synthetic) observations of ultimate tensile strength (UTS) on individual samples of the same aluminum alloy. The experiments were carried out following the higest standards of experimental rigor, so you should consider these values to be the "true" breaking strength for each sample.
+*Strength* is a measure of how much internal stress an object can survive: A higher strength means a stronger material. This challenge's data are very simple: They are (synthetic) observations of ultimate tensile strength (UTS) on individual samples of the same aluminum alloy. The experiments were carried out following the highest standards of experimental rigor, so you should consider these values to be the "true" breaking strength for each sample.
 
 ```{r read-data}
 ## NOTE: No need to edit; load data
@@ -70,17 +70,20 @@ Data Dictionary:
 ### __q1__ Visualize the strength data with a histogram. Answer the questions below.
 
 ```{r q1-task}
+df_samples %>% 
+  ggplot() +
+  geom_histogram(aes(strength), bins = 25)
 ```
 
 **Observations**:
 
 - What is the mean strength of the material, approximately?
-  - (Your response here)
+  - The mean strength seems to be about 40,000 psi.
 - To what extent can you tell what shape the distribution of the data has?
-  - (Your response here)
+  - I can tell that the data doesn't have a normal distribution, but I'm not sure what specific shape it has. 
 - Assuming the scopus is the strength of an individual part made from this aluminum alloy, is the observed variability real or induced?
-  - (Your response here)
-
+  - Since the premise of the challenge is that the observations are true values of the breaking strength of the alloy, there isn't induced variability from experimental error or noise. The variability is a real one since all the parts made from this alloy cannot have the same molecular composition and it's expected to show some deviations.
+  
 # Assessing Structural Safety
 <!-- ----------------------------------------------------------------------- -->
 
@@ -117,17 +120,18 @@ $$\text{POF} \equiv \mathbb{P}[g \leq 0].$$
 
 ```{r q2-task}
 ## TODO: Estimate the probability of failure; i.e. POF = Pr[g <= 0]
-df_samples
+df_samples %>%
+  summarize(POF = mean(g_break(strength) <= 0))
 ```
 
 **Observations**:
 
 - Does this estimate satisfy `POF < 0.03`?
-  - (Your response here)
+  - It satisfies with POF = 0. 
 - Is this estimate of the probability of failure trustworthy? Why or why not?
-  - (Your response here)
+  - It's not very trustworthy since we only have 25 observations in the sample. 
 - Can you confidently conclude that `POF < 0.03`? Why or why not.
-  - (Your response here)
+  - I can't confidently conclude that `POF < 0.03` for every case, and it's not something that we can ultimately measure. There will always be some uncertainty associated. 
 
 ## Material property model
 <!-- --------------------------------------- -->
@@ -144,7 +148,11 @@ Since we have so few physical samples, we will fit a distribution to model the m
 
 ```{r q3-task}
 ## TODO:
-df_fit <- NA
+df_fit <- 
+  df_samples %>% 
+  pull(strength) %>% 
+  fitdistr(densfun = 'lognormal') %>% 
+  tidy()
 df_fit
 ```
 
@@ -158,17 +166,17 @@ Once you've successfully fit a model for the strength, you can estimate the prob
 
 ```{r q4-task}
 ## TODO 1: Choose Monte Carlo sample size
-n_monte_carlo <- NA_real_
+n_monte_carlo <- 1e5
 
 ## TODO 2: Extract parameter estimates from df_fit
-strength_meanlog <- NA_real_
-strength_sdlog <- NA_real_
+strength_meanlog <- df_fit %>% filter(term == 'meanlog') %>% pull(estimate)
+strength_sdlog <- df_fit %>% filter(term == 'sdlog') %>% pull(estimate)
 
 # Generate samples
 df_norm_sim <-
   tibble(strength = rlnorm(n_monte_carlo, strength_meanlog, strength_sdlog)) %>%
 ## TODO 3: Compute structural response
-  glimpse()
+  mutate(g = g_break(strength))
 
 ## NOTE: The following code estimates the POF and a 95% confidence interval
 df_norm_pof <-
@@ -182,26 +190,26 @@ df_norm_pof <-
     pof_lo = pof_est - 1.96 * se,
     pof_hi = pof_est + 1.96 * se
   ) %>%
-  select(pof_lo, pof_est, pof_hi)
+  dplyr::select(pof_lo, pof_est, pof_hi)
 
 df_norm_pof
 ```
 
 - Assuming your scopus is the probability of failure `POF` defined above, does your estimate exhibit real variability, induced variability, or both?
-  - (Your response here)
+  - It exhibits both real and induced variability because we probably introduced noise from fitting a distribution to our sample and we could have made a mistake of choosing the wrong type of distribution if the instructions didn't not mention log normal distribution. It also has real variability of having different strength values for the alloy part that was tested due to its molecular composition. 
 - Does this confidence interval imply that `POF < 0.03`?
-  - (Your response here)
+  - No it doesn't. There are either 100% or 0% chance of having the POF in the interval.
 - Compare this probability with your estimate from q2; is it more or less trustworthy?
-  - (Your response here)
+  - It's a bit more trustworthy since we now have many more simulated observations and an interval to represent the uncertainty. 
 - Does the confidence interval above account for uncertainty arising from the *Monte Carlo approximation*? Why or why not?
-  - (Your response here)
+  - It does generally since we multiply by the sd of the stat and divide by the square root of the number of observations used, which implies that the uncertainty will generally be greater when using lower number of observations.
 - Does the confidence interval above account for uncertainty arising from *limited physical tests* (`df_samples`)? Why or why not?
-  - (Your response here)
+  - It doesn't account for the uncertainty arising from having fitted a distribution to a sample of small size. 
 - What could you do to tighten up the confidence interval?
-  - (Your response here)
+  - I could just increase the number of observations. 
 - Can you *confidently* conclude that `POF < 0.03`? Why or why not?
-  - (Your response here)
-
+  - I can't confidently conclude that since I don't know how much of an uncertainty I've added by fitting a distribution to the sample. The generated distribution might not be representative of the population. 
+  
 ## A different way to compute the POF
 <!-- --------------------------------------- -->
 
@@ -236,7 +244,7 @@ estimate_pof <- function(df) {
     pull(estimate)
 
 ## TODO: Estimate the probability of failure using plnorm
-  pof_estimate <- NA
+  pof_estimate <- plnorm(L/A, strength_meanlog, strength_sdlog)
 
   ## NOTE: No need to edit; this last line returns your pof_estimate
   pof_estimate
@@ -249,15 +257,15 @@ df_samples %>% estimate_pof()
 **Observations**:
 
 - How does this estimate compare with your Monte Carlo estimate above?
-  - (Your response here)
+  - It's about the same when `n_monte_carlo` is set to a very high number.
 - Does this estimate have any uncertainty due to *Monte Carlo approximation*? Why or why not?
-  - (Your response here)
+  - No, it takes the estimated probability directly from the continuous distribution. 
 - With the scopus as the `POF`, would uncertainty due to *Monte Carlo approximation* be induced or real?
-  - (Your response here)
+  - The uncertainty due to Monte Carlo approximation in the previous approach would be induced since there would be noise and errors. 
 - Does this estimate have any uncertainty due to *limited physical tests*? Why or why not?
-  - (Your response here)
+  - There's an uncertainty from the small sample size and fitting a distribution to it. 
 - With the scopus as the `POF`, would uncertainty due to *limited physical tests* be induced or real?
-  - (Your response here)
+  - It would be a real uncertainty since there could be variability in the molecular structure of the physical alloy that's being tested. The limited physical tests wouldn't show the comprehensive deviations in the alloy. 
 
 ## Quantifying sampling uncertainty
 <!-- --------------------------------------- -->
@@ -284,8 +292,8 @@ df_samples %>%
 **Observations**:
 
 - Does the confidence interval above account for uncertainty arising from *Monte Carlo approximation* of the POF? Why or why not?
-  - (Your response here)
+  - It does because the bootstrap method uses 1000 samples, which is accounted for in calculating the confidence interval of the POF. 
 - Does the confidence interval above account for uncertainty arising from *limited physical tests* (`df_samples`)? Why or why not?
-  - (Your response here)
+  - It does because it resamples randomly from the existing sample.
 - Can you confidently conclude that `POF < 0.03`? Why or why not?
-  - (Your response here)
+  - I can't because the upper interval of POF is at 0.048 -- POF might be anywhere in the interval 95% of the time. 

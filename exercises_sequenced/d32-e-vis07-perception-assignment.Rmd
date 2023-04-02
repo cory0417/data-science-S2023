@@ -43,6 +43,7 @@ mpg %>%
 **Observations**:
 
 - What are some issues with this graph?
+The y-axis is ordered in an alphabetical order which makes is difficult to compare their sizes. 
 
 ### __q2__ What are some issues with the following graph? *Don't just say* "it's bad"---use concepts from the required reading.
 
@@ -57,6 +58,7 @@ as_tibble(mtcars) %>%
 ```
 
 - What are some issues with this graph?
+Comparing the area of the circles are quite difficult to do without being in an order. 
 
 ### __q3__ What are some issues with the following graph? *Don't just say* "it's bad"---use concepts from the required reading.
 
@@ -68,6 +70,7 @@ diamonds %>%
 ```
 
 - What are some issues with this graph?
+The stacked bar chart makes it difficult to compare cut qualities other than ideal.
 
 ### __q4__ What are some issues with the following graph? *Don't just say* "it's bad"---use concepts from the required reading.
 
@@ -81,6 +84,7 @@ diamonds %>%
 ```
 
 - What are some issues with this graph?
+Using the area is not every helpful is visualizing simplet set of numbers. 
 
 <!-- include-exit-ticket -->
 # Exit Ticket

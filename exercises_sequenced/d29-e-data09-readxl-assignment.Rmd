@@ -54,6 +54,7 @@ df_q1 %>% glimpse
 **Observations**:
 
 - Based on reading the Excel sheet, why do you think the columns are so weird?
+The top row was probably not completely filled.
 
 Most `read_` functions have a *skip* argument you can use to skip over the first few lines. Use this argument in the next task to deal with the top of the Excel sheet.
 
@@ -65,7 +66,7 @@ Open the target Excel sheet (located at `./data/undoc.xlsx`) and find which line
 ## TODO:
 df_q2 <- read_excel(
   filename,
-  skip = 1
+  skip = 6
 )
 df_q2 %>% glimpse
 ```
@@ -127,7 +128,13 @@ col_names_undoc <-
 
 ## TASK: Use the arguments `skip`, `col_names`, and `col_types`
 df_q3 <-
-  read_excel(filename, sheet = 1)
+  read_excel(
+    filename, 
+    sheet = 1, 
+    skip = 7,
+    col_names = col_names_undoc,
+    col_types = c(rep("text", 6), rep("numeric", 13))
+    )
 ```
 
 Use the following test to check your work.
@@ -194,6 +201,7 @@ df_tmp <-
   lagfill(c("region"))
 
 countna(df_tmp, c("region"))
+df_tmp
 ```
 
 We can see that `lagfill` has filled the `Africa` value in row 2, as well as a number of other rows as evidenced by the reduced value returned by `countna`.
@@ -207,7 +215,7 @@ What we'll do is continually run `lagfill` until we reduce `countna` to zero. We
 ```{r q4-task}
 ## Choose variables to lag-fill
 ## TASK: Choose the appropriate variables to lag-fill
-vars_lagged <- c()
+vars_lagged <- c("region", "sub_region", "territory", "source", "org")
 
 ## NOTE: No need to edit this
 ## Trim head and notes
@@ -221,6 +229,8 @@ while (countna(df_q4, vars_lagged) > 0) {
     df_q4 %>%
     lagfill(vars_lagged)
 }
+
+df_q4
 ```
 
 And we're done! All of the particularly tricky wrangling is now done. You could now use pivoting to tidy the data into long form.

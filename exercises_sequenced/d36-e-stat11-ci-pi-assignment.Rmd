@@ -64,8 +64,8 @@ ci_lwr <- mu - 1.96 * sd / sqrt(n)
 ci_upr <- mu + 1.96 * sd / sqrt(n)
 ## TODO: Use the equations above to compute a prediction interval for the
 ##       normal distribution rnorm(mean = mu, sd = sd)
-pi_lwr <- NA_real_
-pi_upr <- NA_real_
+pi_lwr <- mu - 1.96 * sd
+pi_upr <- mu + 1.96 * sd
 ```
 
 Use the following tests to check your work.
@@ -132,7 +132,18 @@ Take a quick look at the plot above, and make a prediction (to yourself) whether
 ```{r q2-task}
 ## TODO: Estimate CI and PI using the formulas from q1, use diamonds_train
 ##       and assign your estimates to columns ci_lwr, ci_upr, pi_lwr, pi_upr
-df_q2 <- NA
+mu <- mean(diamonds_train$price)
+sd <- sd(diamonds_train$price)
+n <- nrow(diamonds_train) 
+df_q2 <- 
+  tibble(
+    ci_lwr = mu - 1.96 * sd / sqrt(n),
+    ci_upr = mu + 1.96 * sd / sqrt(n),
+    
+    pi_lwr = mu - 1.96 * sd,
+    pi_upr = mu + 1.96 * sd
+  )
+  
 df_q2
 ```
 
@@ -163,21 +174,43 @@ df_q2 %>%
 **Observations**:
 
 - Compare the intervals against the price observations; do the intervals and observations relate to each other like you would expect?
+They share the same mean.
+
 - Are the CI and PI working correctly? How would you check this?
+It's working to an extent since we assumed that it would be a normal distribution even though it's clearly not. CI seems quite close to the mean, PI theoretical should be able to cover 95% of all the prices. 
+
 - What *assumptions* did you make when defining your CI and PI above? Are those assumptions valid for these data?
+We assumed normal distribution with the sd and mean as that of the training dataset.
 
 ### __q3__ Test whether your CI and PI are constructed correctly: Remember the definitions of what CI and PI are meant to accomplish, and check how closely your intervals agree with the validation data.
 
 ```{r q3-task}
 ## TODO: Devise a test to see if your CI and PI are correctly reflecting
 ##       the diamonds population; use diamonds_validation in your testing
+bind_cols(
+  df_q2 %>% select(ci_lwr, ci_upr),
+  diamonds_validate %>% summarize(price_mean = mean(price))
+) %>%
+  select(ci_lwr, price_mean, ci_upr)
+
+left_join(
+  diamonds_validate,
+  df_q2 %>% select(pi_lwr, pi_upr),
+  by = character()
+) %>%
+  summarize(P_empirical = mean(pi_lwr <= price & price <= pi_upr))
 ```
 
 **Observations**:
 
 - Does your CI include the mean price of diamonds?
-  - Do we expect the CI it to *always* include the true parameter?
+Yes, it does include the mean price.
+
+  - Do we expect the CI to *always* include the true parameter?
+  No we can't expect that. 
+  
 - Does your PI include the appropriate fraction of diamond prices?
+It includes about 93.5% which is pretty close to 95%. 
 
 <!-- include-exit-ticket -->
 # Exit Ticket

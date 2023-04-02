@@ -146,9 +146,10 @@ diamonds %>%
 
 **Classify**:
 AAA, ABT, or DHY?
+AAA
 
 **Justify**
-Write your justification here!
+The prices of diamonds vary with the carat size and the cut quality, and there are some outliers that have much lower or higher prices. 
 
 ### __q2__ Identify the point on the narrative spectrum, and justify your answer.
 
@@ -171,9 +172,10 @@ diamonds %>%
 
 **Classify**:
 AAA, ABT, or DHY?
+ABT
 
 **Justify**
-Write your justification here!
+Carat and price are positively correlated, but the cut quality doesn't show a uniform pattern. Therefore, more investigation is required for what is causing the variation in prices among diamonds of same carat size. 
 
 ### __q3__ Identify the point on the narrative spectrum, and justify your answer.
 
@@ -194,9 +196,10 @@ diamonds %>%
 
 **Classify**:
 AAA, ABT, or DHY?
+AAA
 
 **Justify**
-Write your justification here!
+The faucet plot tells us a lot of information without a narrative. 
 
 ### __q4__ Turn in all your answers via google forms. [Link](https://forms.gle/kHuT5oufUQA7jRWG8)
 

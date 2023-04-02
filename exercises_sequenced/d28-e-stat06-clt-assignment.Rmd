@@ -124,7 +124,7 @@ q95
 
 This is approximately `1.96` when seeking a $95%$ confidence level. Since the standard normal distribution is symmetric about zero, we can use the same value `q95` with a negative sign for the appropriate lower quantile.
 
-*Here's the procedure*, we'll build lower and upper bounds for an interval based on the sample mean and sample standard error $[\hat{mu} - q_{95} \hat{\text{SE}}, \hat{mu} + q_{95} \hat{\text{SE}}]$. I construct this interval for each sample in `df_clt`, and check whether the interval contains the population mean of `0.5`. The following code visualizes the first `100` intervals.
+*Here's the procedure*, we'll build lower and upper bounds for an interval based on the sample mean and sample standard error $[\hat{\mu} - q_{95} \hat{\text{SE}}, \hat{\mu} + q_{95} \hat{\text{SE}}]$. I construct this interval for each sample in `df_clt`, and check whether the interval contains the population mean of `0.5`. The following code visualizes the first `100` intervals.
 
 ```{r vis-unif-ci}
 ## NOTE: No need to change this!
@@ -190,8 +190,10 @@ Some observations to note:
 ## TASK: Estimate a 99% confidence interval with the sample below
 set.seed(101)
 z_q1 <- rnorm(n = 100, mean = 1, sd = 2)
-lo_q1 <- NA_real_
-hi_q1 <- NA_real_
+q99 <- qnorm(1 - (1 - 0.99) / 2)
+se_q1 <- sd(z_q1)/sqrt(100)
+lo_q1 <- mean(z_q1) - q99 * se_q1
+hi_q1 <- mean(z_q1) + q99 * se_q1
 ```
 
 Use the following tests to check your answer.

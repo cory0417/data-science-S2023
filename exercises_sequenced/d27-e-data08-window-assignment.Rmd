@@ -24,7 +24,7 @@ library(ggrepel)
 The lead and lag functions simply provide a "shifted" copy of a vector.
 
 ```{r ex-lead-lag}
-## NOTE: No need to edit this; just an example
+## NOTE: No need to edi[t this; just an example
 v <- c(1, 2, 3, 4, 5)
 lead(v)
 lag(v)
@@ -44,7 +44,7 @@ df_dx
 
 Make sure to order your data or use the `order_by` argument when using `lead` or `lag`! GGplot automatically reorders your data when making a line plot, but `lead` and `lag` will use the order of the data you provide.
 
-### __q1__ Use a window function modify the following visual to color each segment differently based on whether the period of time was increasing or decreasing.
+### __q1__ Use a window function to modify the following visual to color each segment differently based on whether the period of time was increasing or decreasing.
 
 ```{r q1-task}
 ## TASK: Modify the following code to color each segment based on whether the
@@ -52,10 +52,14 @@ Make sure to order your data or use the `order_by` argument when using `lead` or
 economics %>%
 
   ggplot(aes(date, unemploy)) +
-  geom_segment(aes(
-    xend = lead(date, order_by = date),
-    yend = lead(unemploy, order_by = date)
-  ))
+  geom_segment(
+    data = . %>% mutate(trend = lead(unemploy, order_by = date) > unemploy),
+    aes(
+      xend = lead(date, order_by = date),
+      yend = lead(unemploy, order_by = date),
+      color = trend
+    )
+  )
 ```
 
 ## Ranks
@@ -131,7 +135,8 @@ tribble(
 
 ```{r q2-task}
 ## TASK: Use a rank function to filter the `mpg` data
-q2 <- mpg
+q2 <- mpg %>% 
+  filter(dense_rank(desc(hwy)) <= 3)
 q2
 ```
 
