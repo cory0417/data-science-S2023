@@ -74,7 +74,7 @@ df_stang_long <-
     names_sep = "_",
     names_transform = list(angle = as.integer)
   ) %>% 
-  filter(E > 0 | mu > 0)
+  filter(E > 0 & mu > 0)
 df_stang_long
 ```
 
@@ -107,20 +107,28 @@ print("Very good!")
 
 ### __q2__ Perform a basic EDA on the aluminum data *without visualization*. Use your analysis to answer the questions under *observations* below. In addition, add your own *specific* question that you'd like to answer about the data---you'll answer it below in q3.
 
-```{r q2-task}
+```{r q2-task-1}
 df_stang_long %>% 
-  glimpse %>% 
-  summary 
-df_stang_long
-
+  group_by(thick) %>% 
+  reframe(range_E = range(E), range_mu = range(mu))
 ```
+```{r q2-task-2}
+df_stang_long %>% distinct(alloy)
+```
+```{r q2-task-3}
+df_stang_long %>% distinct(angle)
+```
+```{r q2-task-4}
+df_stang_long %>% distinct(thick)
+```
+
 
 **Observations**:
 
 - Is there "one true value" for the material properties of Aluminum?
-  - No, even for a given thickness of an alloy at a specific angle, the `E` and `mu` had variations among observations.  
+  - No, even for a given thickness of an alloy at a specific angle, the `E` and `mu` had variations among observations. 
 - How many aluminum alloys are in this dataset? How do you know?
-  - There is only one alloy in the dataset. The value for column `alloy` doesn't change.
+  - There is only one alloy in the dataset. There is only `al_24st` as a distinct value.
 - What angles were tested?
   - 0, 45, 90 degrees were tested.
 - What thicknesses were tested?
@@ -140,32 +148,40 @@ plot_E <-
     data = df_stang_long,
     mapping = aes(x = thick, y = E)
   ) +
-  geom_line(
+  geom_smooth(
     data = df_stang_long %>% 
       group_by(thick, angle) %>% 
       summarize(mean_E = mean(E)),
     mapping = aes(x = thick, y = mean_E, color = "Average E"),
   ) +
-  facet_grid(angle ~ ., scales = "free_y")
+  facet_grid(angle ~ ., scales = "free_y") +
+  scale_color_manual(values = c("Average E" = '#149D3C')) +
+  theme(
+    legend.title = element_blank()
+  )
 plot_mu <-
   ggplot() +
   geom_point(
     data = df_stang_long,
     mapping = aes(x = thick, y = mu)
   ) +
-  geom_line(
+  geom_smooth(
     data = df_stang_long %>% 
       group_by(thick, angle) %>% 
       summarize(mean_mu = mean(mu)),
     mapping = aes(x = thick, y = mean_mu, color = "Average mu"),
   ) +
-  facet_grid(angle ~ ., scales = "free_y")
+  facet_grid(angle ~ ., scales = "free_y") +
+  scale_color_manual(values = c("Average mu" = 'blue')) +
+  theme(
+    legend.title = element_blank()
+  )
 ggarrange(plot_E, plot_mu, ncol = 1, nrow = 2)
 ```
 
 **Observations**:
 
-- It's tempting to say that `E` and `mu` decreases as thickness increases. However, the relationship from the plot seems nonlinear and varying according to the angle and the thickness.
+- It's tempting to say that `E` and `mu` decreases as thickness increases. However, the relationship from the plot seems monotone and varying according to the angle and the thickness.
 
 ### __q4__ Consider the following statement:
 

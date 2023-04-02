@@ -83,14 +83,16 @@ for more information.
 library(tidyverse)
 ```
 
-    ## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.2 ──
-    ## ✔ ggplot2 3.4.1     ✔ purrr   1.0.1
-    ## ✔ tibble  3.1.8     ✔ dplyr   1.1.0
-    ## ✔ tidyr   1.3.0     ✔ stringr 1.5.0
-    ## ✔ readr   2.1.4     ✔ forcats 1.0.0
+    ## ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+    ## ✔ dplyr     1.1.0     ✔ readr     2.1.4
+    ## ✔ forcats   1.0.0     ✔ stringr   1.5.0
+    ## ✔ ggplot2   3.4.1     ✔ tibble    3.1.8
+    ## ✔ lubridate 1.9.2     ✔ tidyr     1.3.0
+    ## ✔ purrr     1.0.1     
     ## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
     ## ✖ dplyr::filter() masks stats::filter()
     ## ✖ dplyr::lag()    masks stats::lag()
+    ## ℹ Use the ]8;;http://conflicted.r-lib.org/conflicted package]8;; to force all conflicts to become errors
 
 ``` r
 library(ggpubr)
@@ -168,7 +170,7 @@ df_stang_long <-
     names_sep = "_",
     names_transform = list(angle = as.integer)
   ) %>% 
-  filter(E > 0 | mu > 0)
+  filter(E > 0 & mu > 0)
 df_stang_long
 ```
 
@@ -236,60 +238,62 @@ print("Very good!")
 
 ``` r
 df_stang_long %>% 
-  glimpse %>% 
-  summary 
+  group_by(thick) %>% 
+  reframe(range_E = range(E), range_mu = range(mu))
 ```
 
-    ## Rows: 26
-    ## Columns: 5
-    ## $ thick <dbl> 0.022, 0.022, 0.022, 0.022, 0.022, 0.022, 0.032, 0.032, 0.032, 0…
-    ## $ alloy <chr> "al_24st", "al_24st", "al_24st", "al_24st", "al_24st", "al_24st"…
-    ## $ angle <int> 0, 45, 90, 0, 45, 90, 0, 45, 90, 0, 45, 90, 0, 45, 90, 0, 45, 90…
-    ## $ E     <dbl> 10600, 10700, 10500, 10600, 10500, 10700, 10400, 10400, 10300, 1…
-    ## $ mu    <dbl> 0.321, 0.329, 0.310, 0.323, 0.331, 0.323, 0.329, 0.318, 0.322, 0…
-
-    ##      thick            alloy               angle          E        
-    ##  Min.   :0.02200   Length:26          Min.   : 0   Min.   : 9900  
-    ##  1st Qu.:0.03200   Class :character   1st Qu.: 0   1st Qu.:10025  
-    ##  Median :0.06400   Mode  :character   Median :45   Median :10400  
-    ##  Mean   :0.05215                      Mean   :45   Mean   :10335  
-    ##  3rd Qu.:0.08100                      3rd Qu.:90   3rd Qu.:10500  
-    ##  Max.   :0.08100                      Max.   :90   Max.   :10700  
-    ##        mu        
-    ##  Min.   :0.3100  
-    ##  1st Qu.:0.3152  
-    ##  Median :0.3215  
-    ##  Mean   :0.3212  
-    ##  3rd Qu.:0.3277  
-    ##  Max.   :0.3310
+    ## # A tibble: 8 × 3
+    ##   thick range_E range_mu
+    ##   <dbl>   <dbl>    <dbl>
+    ## 1 0.022   10500    0.31 
+    ## 2 0.022   10700    0.331
+    ## 3 0.032   10300    0.318
+    ## 4 0.032   10500    0.33 
+    ## 5 0.064   10400    0.32 
+    ## 6 0.064   10700    0.331
+    ## 7 0.081    9900    0.311
+    ## 8 0.081   10100    0.32
 
 ``` r
-df_stang_long
+df_stang_long %>% distinct(alloy)
 ```
 
-    ## # A tibble: 26 × 5
-    ##    thick alloy   angle     E    mu
-    ##    <dbl> <chr>   <int> <dbl> <dbl>
-    ##  1 0.022 al_24st     0 10600 0.321
-    ##  2 0.022 al_24st    45 10700 0.329
-    ##  3 0.022 al_24st    90 10500 0.31 
-    ##  4 0.022 al_24st     0 10600 0.323
-    ##  5 0.022 al_24st    45 10500 0.331
-    ##  6 0.022 al_24st    90 10700 0.323
-    ##  7 0.032 al_24st     0 10400 0.329
-    ##  8 0.032 al_24st    45 10400 0.318
-    ##  9 0.032 al_24st    90 10300 0.322
-    ## 10 0.032 al_24st     0 10300 0.319
-    ## # … with 16 more rows
+    ## # A tibble: 1 × 1
+    ##   alloy  
+    ##   <chr>  
+    ## 1 al_24st
+
+``` r
+df_stang_long %>% distinct(angle)
+```
+
+    ## # A tibble: 3 × 1
+    ##   angle
+    ##   <int>
+    ## 1     0
+    ## 2    45
+    ## 3    90
+
+``` r
+df_stang_long %>% distinct(thick)
+```
+
+    ## # A tibble: 4 × 1
+    ##   thick
+    ##   <dbl>
+    ## 1 0.022
+    ## 2 0.032
+    ## 3 0.064
+    ## 4 0.081
 
 **Observations**:
 
 - Is there “one true value” for the material properties of Aluminum?
   - No, even for a given thickness of an alloy at a specific angle, the
-    `E` and `mu` had variations among observations.  
+    `E` and `mu` had variations among observations.
 - How many aluminum alloys are in this dataset? How do you know?
-  - There is only one alloy in the dataset. The value for column `alloy`
-    doesn’t change.
+  - There is only one alloy in the dataset. There is only `al_24st` as a
+    distinct value.
 - What angles were tested?
   - 0, 45, 90 degrees were tested.
 - What thicknesses were tested?
@@ -309,26 +313,34 @@ plot_E <-
     data = df_stang_long,
     mapping = aes(x = thick, y = E)
   ) +
-  geom_line(
+  geom_smooth(
     data = df_stang_long %>% 
       group_by(thick, angle) %>% 
       summarize(mean_E = mean(E)),
     mapping = aes(x = thick, y = mean_E, color = "Average E"),
   ) +
-  facet_grid(angle ~ ., scales = "free_y")
+  facet_grid(angle ~ ., scales = "free_y") +
+  scale_color_manual(values = c("Average E" = '#149D3C')) +
+  theme(
+    legend.title = element_blank()
+  )
 plot_mu <-
   ggplot() +
   geom_point(
     data = df_stang_long,
     mapping = aes(x = thick, y = mu)
   ) +
-  geom_line(
+  geom_smooth(
     data = df_stang_long %>% 
       group_by(thick, angle) %>% 
       summarize(mean_mu = mean(mu)),
     mapping = aes(x = thick, y = mean_mu, color = "Average mu"),
   ) +
-  facet_grid(angle ~ ., scales = "free_y")
+  facet_grid(angle ~ ., scales = "free_y") +
+  scale_color_manual(values = c("Average mu" = 'blue')) +
+  theme(
+    legend.title = element_blank()
+  )
 ggarrange(plot_E, plot_mu, ncol = 1, nrow = 2)
 ```
 
@@ -337,7 +349,7 @@ ggarrange(plot_E, plot_mu, ncol = 1, nrow = 2)
 **Observations**:
 
 - It’s tempting to say that `E` and `mu` decreases as thickness
-  increases. However, the relationship from the plot seems nonlinear and
+  increases. However, the relationship from the plot seems monotone and
   varying according to the angle and the thickness.
 
 ### **q4** Consider the following statement:
