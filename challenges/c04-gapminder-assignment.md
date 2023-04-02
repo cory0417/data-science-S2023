@@ -159,8 +159,8 @@ gapminder %>%
 
 ``` r
 ## TASK: Find the largest and smallest values of `year` in `gapminder`
-year_max <- max(pull(gapminder, year))
-year_min <- min(pull(gapminder, year))
+year_max <- gapminder %>% summarize(max(year)) %>% pull() 
+year_min <- gapminder %>% summarize(min(year)) %>% pull() 
 
 gapminder %>% 
   filter(year == year_max) %>% 
@@ -439,34 +439,30 @@ gapminder %>%
   time.
 
 ``` r
-df_median_variance <- 
-  gapminder %>%
-  group_by(year, continent) %>%
-  summarise(median = as.numeric(median(gdpPercap, na.rm = TRUE)), .groups = "keep") %>% 
-  pivot_wider(names_from = continent, values_from = median) %>% 
-  # multiplying by n-1/n to get population variance
-  data.frame(variance = apply(.[-1], 1, var) * (ncol(.[-1])-1)/ncol(.[-1]))
-
-df_median_variance %>% 
+gapminder %>%
+  group_by(year, continent) %>% 
+  summarise(variance = var(gdpPercap), .groups = "keep") %>% 
   ggplot() +
-  geom_point(aes(year, variance)) +
-  geom_line(aes(year, variance)) +
+  geom_point(aes(x = year, y = variance, color = continent)) + 
+  geom_line(aes(x = year, y = variance, color = continent)) +
   labs(
     x = "Year",
-    y = TeX("Variance of Median GDP per Capita($\\$^2$)"),
-    title = "Variance of Median GDP per Capita vs Year",
-    caption = "The plot shows the variance of median GDP per Capita of between each continents over time."
+    y = TeX("Variance in GDP per Capita ($\\$^2$)"),
+    title = "Variance in GDP per Capita vs Year",
+    caption = "The plot shows the variance in GDP per Capita of different continents over time.",
+    color = "Continent"
   )
 ```
 
 ![](c04-gapminder-assignment_files/figure-gfm/q5-task1-2-1.png)<!-- -->
 
 - Because of the unit of variance, the quantitative value of variance
-  doesn’t seem to convey too much meaning.
-- Similar to the observation in the prior plot, the variance
-  exponentially increases over time.
-- This could signify increasing disparities in GDP per Capita among
-  continents.
+  doesn’t seem to convey too much meaning other than Asia having notably
+  higher variance than others from 1950’s to about 80s.
+- The variance in GDP per capita increases exponentially increases over
+  time except for Asia has a more tumultuous trend.
+- This could signify increasing disparities in GDP per capita among
+  countries in a continent.
 
 ``` r
 gapminder %>% 
@@ -487,8 +483,8 @@ gapminder %>%
   generally when a country is more economically flourishing, basic
   survival needs and medical needs would be better fulfilled.
 - To validate my assumptions, I first made a scatter plot of `lifeExp`
-  vs `gdpPercap` and saw a monotonic positive correlation between the
-  two variables.
+  vs `gdpPercap` and saw a non-linearly increasing relationship between
+  the two variables.
 
 ``` r
 df_life_gdp <- 
