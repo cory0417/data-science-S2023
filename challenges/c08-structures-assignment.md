@@ -206,8 +206,7 @@ df_samples %>%
     values of the breaking strength of the alloy, there isn’t induced
     variability from experimental error or noise. The variability is a
     real one since all the parts made from this alloy cannot have the
-    same molecular composition and it’s expected to show some
-    deviations.
+    same molecular composition and it would show some deviations.
 
 # Assessing Structural Safety
 
@@ -361,41 +360,41 @@ df_norm_pof
     ## # A tibble: 1 × 3
     ##   pof_lo pof_est pof_hi
     ##    <dbl>   <dbl>  <dbl>
-    ## 1 0.0174  0.0183 0.0191
+    ## 1 0.0175  0.0183 0.0192
 
 - Assuming your scopus is the probability of failure `POF` defined
   above, does your estimate exhibit real variability, induced
   variability, or both?
-  - It exhibits both real and induced variability because we probably
-    introduced noise from fitting a distribution to our sample and we
-    could have made a mistake of choosing the wrong type of distribution
-    if the instructions didn’t not mention log normal distribution. It
-    also has real variability of having different strength values for
-    the alloy part that was tested due to its molecular composition.
+  - It exhibits induced variability by fitting a distribution to our
+    sample and possibly making a mistake of choosing the wrong type of
+    distribution if the instructions didn’t not mention log normal
+    distribution. Assuming that the manufacturing process for the alloy
+    doesn’t change, there should be a fixed POF without real
+    variability.
 - Does this confidence interval imply that `POF < 0.03`?
-  - No it doesn’t. There are either 100% or 0% chance of having the POF
-    in the interval.
+  - Yes, the interval implies that POF is less than 0.03 since the
+    higher interval is about 0.018 for 95% confidence.
 - Compare this probability with your estimate from q2; is it more or
   less trustworthy?
   - It’s a bit more trustworthy since we now have many more simulated
     observations and an interval to represent the uncertainty.
 - Does the confidence interval above account for uncertainty arising
   from the *Monte Carlo approximation*? Why or why not?
-  - It does generally since we multiply by the sd of the stat and divide
-    by the square root of the number of observations used, which implies
-    that the uncertainty will generally be greater when using lower
-    number of observations.
+  - It does since we multiply by the sd of the stat and divide by the
+    square root of the `n_monte_carlo` used, which implies that the
+    uncertainty will generally be greater when using lower
+    `n_monte_carlo`.
 - Does the confidence interval above account for uncertainty arising
   from *limited physical tests* (`df_samples`)? Why or why not?
   - It doesn’t account for the uncertainty arising from having fitted a
     distribution to a sample of small size.
 - What could you do to tighten up the confidence interval?
-  - I could just increase the number of observations.
+  - I could just increase `n_monte_carlo`.
 - Can you *confidently* conclude that `POF < 0.03`? Why or why not?
   - I can’t confidently conclude that since I don’t know how much of an
-    uncertainty I’ve added by fitting a distribution to the sample. The
-    generated distribution might not be representative of the
-    population.
+    uncertainty I’ve added by fitting a distribution to the sample of
+    only 25 observations. The generated distribution might not be
+    representative of the population.
 
 ## A different way to compute the POF
 
@@ -464,18 +463,16 @@ df_samples %>% estimate_pof()
     distribution.
 - With the scopus as the `POF`, would uncertainty due to *Monte Carlo
   approximation* be induced or real?
-  - The uncertainty due to Monte Carlo approximation in the previous
-    approach would be induced since there would be noise and errors.
+  - There is no uncertainty due to Monte Carlo approximation.
 - Does this estimate have any uncertainty due to *limited physical
   tests*? Why or why not?
   - There’s an uncertainty from the small sample size and fitting a
     distribution to it.
 - With the scopus as the `POF`, would uncertainty due to *limited
   physical tests* be induced or real?
-  - It would be a real uncertainty since there could be variability in
-    the molecular structure of the physical alloy that’s being tested.
-    The limited physical tests wouldn’t show the comprehensive
-    deviations in the alloy.
+  - It would be an induced uncertainty since we aren’t changing anything
+    about the scopus but instead it’s an uncertainty from the part of
+    the observer.
 
 ## Quantifying sampling uncertainty
 
@@ -509,17 +506,17 @@ df_samples %>%
     ## # A tibble: 1 × 6
     ##   term   .lower .estimate .upper .alpha .method   
     ##   <chr>   <dbl>     <dbl>  <dbl>  <dbl> <chr>     
-    ## 1 pof   0.00127    0.0184 0.0525   0.05 percentile
+    ## 1 pof   0.00148    0.0175 0.0465   0.05 percentile
 
 **Observations**:
 
 - Does the confidence interval above account for uncertainty arising
   from *Monte Carlo approximation* of the POF? Why or why not?
-  - It does because the bootstrap method uses 1000 samples, which is
-    accounted for in calculating the confidence interval of the POF.
+  - It doesn’t since the method doesn’t use the Monte Carlo
+    approximation.
 - Does the confidence interval above account for uncertainty arising
   from *limited physical tests* (`df_samples`)? Why or why not?
-  - It does because it resamples randomly from the existing sample.
+  - It does because it resamples randomly from the existing sample to
+    fit a distribution to it.
 - Can you confidently conclude that `POF < 0.03`? Why or why not?
-  - I can’t because the upper interval of POF is at 0.048 – POF might be
-    anywhere in the interval 95% of the time.
+  - I can’t because the upper interval of POF is at 0.048.
