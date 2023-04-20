@@ -400,46 +400,34 @@ Finally, let’s use the bootstrap to perform the same test using
 
 ``` r
 ## TODO: Use the bootstrap to compute a confidence interval for corr[high_GPA, univ_GPA]
-df_high_univ_GPA_corr <- 
-  df_composite %>% 
-  bootstraps(., times = 1000) 
+corr_high_GPA <- function(split) {
+  df <- analysis(split)
+  
+  tibble(
+    term = "cor",
+    estimate = cor(df$high_GPA, df$univ_GPA)
+  )
+}
 
-boot_splits <- df_high_univ_GPA_corr %>% mutate(estimates = map(splits, ~analysis(.x)))
-
-cor_tests <- boot_splits[['estimates']] %>% 
-  map(
-    ., 
-    ~ cor.test(.x$high_GPA, .x$univ_GPA) %>% 
-      tidy() %>% 
-      .[c('estimate', 'conf.low', 'conf.high')]
-    )
-
-cor_coef <- map_dbl(cor_tests, ~.x[['estimate']])
-
-conf_interval_lo <- map_dbl(cor_tests, ~.x[['conf.low']])
-
-conf_interval_hi <- map_dbl(cor_tests, ~.x[['conf.high']])
-
-tibble(
-  cor_coef = mean(cor_coef),
-  lo = mean(conf_interval_lo),
-  hi = mean(conf_interval_hi)
-)
+## Use the bootstrap to approximate a CI
+df_composite %>%
+  bootstraps(times = 1000) %>%
+  mutate(estimates = map(splits, corr_high_GPA))  %>%
+  int_pctl(estimates)
 ```
 
-    ## # A tibble: 1 × 3
-    ##   cor_coef    lo    hi
-    ##      <dbl> <dbl> <dbl>
-    ## 1    0.778 0.690 0.844
+    ## # A tibble: 1 × 6
+    ##   term  .lower .estimate .upper .alpha .method   
+    ##   <chr>  <dbl>     <dbl>  <dbl>  <dbl> <chr>     
+    ## 1 cor    0.693     0.778  0.851   0.05 percentile
 
 **Observations**:
 
 - How does your estimate from q5 compare with your estimate from q4?
-  - The estimate of about 0.7815 is very similar to about 0.77956 which
+  - The estimate of about 0.7800 is very similar to about 0.77956 which
     was the estimate from q4.
 - How does your CI from q5 compare with your CI from q4?
-  - The CI is also very similar – they are identical to two decimal
-    places.
+  - The CI is also very similar – about 0.70 to 0.85 vs 0.69 to 0.84.
 
 *Aside*: When you use two different approximations to compute the same
 quantity and get similar results, that’s an *encouraging sign*. Such an
