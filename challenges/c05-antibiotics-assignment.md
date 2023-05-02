@@ -162,8 +162,9 @@ df_antibiotics %>%
     values_to = "MIC"
     ) %>% 
   ggplot() +
-  geom_point(
-    aes(bacteria, MIC, color = antibiotics)
+  geom_col(
+    aes(fct_reorder(bacteria, MIC), MIC, fill = antibiotics),
+    position = "dodge"
   ) +
   geom_hline(yintercept = 0.1, linetype = 'dashed', color = 'orange') +
   annotate(
@@ -175,7 +176,8 @@ df_antibiotics %>%
     fill = "red",
     alpha = .1
     ) +
-  scale_y_log10(breaks = c(0, 0.01, 0.1, 1, 10, 100, 1000)) +
+  scale_y_log10(breaks = c(0.001, 0.01, 0.1, 1, 10, 100, 1000)) +
+  theme_minimal() +
   theme(axis.text.x = element_text(angle = 60, vjust = 1, hjust=1, face='italic')) +
   labs(
     color = "Antibiotics",
@@ -185,8 +187,6 @@ df_antibiotics %>%
   scale_color_discrete(name = "Antibiotics", labels = c("Neomycin", "Penicillin", "Streptomycin")) + 
   facet_wrap(gram ~., scales="free_x")
 ```
-
-    ## Warning: Transformation introduced infinite values in continuous y-axis
 
 ![](c05-antibiotics-assignment_files/figure-gfm/q1.1-1.png)<!-- -->
 
@@ -209,6 +209,7 @@ df_antibiotics %>%
   mutate(human_test = MIC <= 0.1) %>% 
   ggplot() + 
   geom_point(aes(bacteria, antibiotics, color = human_test, size = log(MIC))) + 
+  theme_minimal() +
   theme(axis.text.x = element_text(angle = 60, vjust = 1, hjust=1, face='italic')) +
   labs(
     color = "Human Test",
@@ -253,6 +254,27 @@ df_antibiotics %>%
 
 ![](c05-antibiotics-assignment_files/figure-gfm/q1.3-1.png)<!-- -->
 
+``` r
+df_antibiotics %>% 
+  pivot_longer(
+    cols = -c(bacteria, gram), 
+    names_to = "antibiotics",
+    values_to = "MIC"
+    ) %>% 
+  ggplot() +
+  geom_density(aes(MIC, fill = antibiotics), alpha = 0.7, color = NA) + 
+  geom_vline(xintercept = 0.1, linetype = 'dashed', color = 'orange') +
+  geom_label(aes(x = 0.1, y = 0.4, label = "Threshold MIC\nfor human testing"), size = 3) +
+  scale_x_log10() +
+  theme_minimal() +
+  labs(
+    y = "Density",
+    title = "Density of MIC by Antibiotics"
+    ) 
+```
+
+![](c05-antibiotics-assignment_files/figure-gfm/q1.3.1-1.png)<!-- -->
+
 #### Visual 4 (Some variables)
 
 In this visual you may show a *subset* of the variables (`penicillin`,
@@ -279,7 +301,8 @@ df_antibiotics %>%
     color = "Color",
     x = "Antibiotics",
     title = "MIC vs Chosen Antibiotics"
-  )
+  ) +
+  theme_minimal()
 ```
 
 ![](c05-antibiotics-assignment_files/figure-gfm/q1.4-1.png)<!-- -->
@@ -305,6 +328,7 @@ df_antibiotics %>%
   ggplot(aes(x = bacteria)) +
   geom_point(aes(y = mean, color = gram)) + 
   facet_grid(.~ gram, scale = 'free_x') +
+  theme_minimal() + 
   theme(axis.text.x = element_text(angle = 60, vjust = 1, hjust=1, face='italic')) +
   scale_y_log10(breaks = c(0, 0.1, 10, 1000)) +
   labs(
@@ -314,9 +338,6 @@ df_antibiotics %>%
     title = "Mean MIC vs Bacteria"
     )
 ```
-
-    ## `summarise()` has grouped output by 'bacteria'. You can override using the
-    ## `.groups` argument.
 
 ![](c05-antibiotics-assignment_files/figure-gfm/q1.5-1.png)<!-- -->
 
@@ -346,8 +367,8 @@ opportunity to think about why this is.**
     bacteria. Streptomycin is generally more effective for Gram-positive
     bacteria compared to Gram-negative. Neomycin has equal number of
     bacteria for which it passes the limit for the human-testable
-    effectiveness, but the effectiveness is much greater for
-    Gram-positive bacteria.
+    effectiveness as Streptomycin, but the effectiveness is much greater
+    for Gram-positive bacteria.
 - Which of your visuals above (1 through 5) is **most effective** at
   helping to answer this question?
   - Visual 3 was the most helpful.
